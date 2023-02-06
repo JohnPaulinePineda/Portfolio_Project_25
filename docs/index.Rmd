@@ -62,6 +62,7 @@ library(ISLR)
 library(factoextra)
 library(NbClust)
 library(cluster)
+library(dbscan)
 
 ##################################
 # Loading source and
@@ -468,7 +469,7 @@ featurePlotRange(1,4)
 # for the principal components
 # grouped by cancer
 ##################################
-PC1_PC2_PC3_ScatterPlot <- cloud(PC1 ~ PC2*PC3,
+cloud(PC1 ~ PC2*PC3,
       groups = EDA$Cancer,
        data = EDA,
        type = "p",
@@ -476,49 +477,16 @@ PC1_PC2_PC3_ScatterPlot <- cloud(PC1 ~ PC2*PC3,
        cex = 2,
        alpha = 0.45,
        auto.key = list(points = TRUE, space = "top"),
-       main = "PC1 VERSUS PC2 VERSUS PC3 BY CANCER")
+       main = "Three-Way Scatterplot of Principal Component Descriptors (PCA)")
 
-PC1_PC2_ScatterPlot <- xyplot(PC1 ~ PC2,
-       groups = EDA$Cancer,
-       data = EDA,
-       xlab = "PC2",
-       ylab = "PC1",
-       type = "p",
-       pch = 16,
-       cex = 3,
-       alpha = 0.45,
-       auto.key = list(points = TRUE, space = "top"),
-       main = "PC1 VERSUS PC2 BY CANCER")
-
-PC1_PC3_ScatterPlot <- xyplot(PC1 ~ PC3,
-       groups = EDA$Cancer,
-       data = EDA,
-       xlab = "PC3",
-       ylab = "PC1",
-       type = "p",
-       pch = 16,
-       cex = 3,
-       alpha = 0.45,
-       auto.key = list(points = TRUE, space = "top"),
-       main = "PC1 VERSUS PC3 BY CANCER")
-
-PC3_PC2_ScatterPlot <- xyplot(PC3 ~ PC2,
-       groups = EDA$Cancer,
-       data = EDA,
-       xlab = "PC2",
-       ylab = "PC3",
-       type = "p",
-       pch = 16,
-       cex = 3,
-       alpha = 0.45,
-       auto.key = list(points = TRUE, space = "top"),
-       main = "PC2 VERSUS PC3 BY CANCER")
-
-grid.arrange(PC1_PC2_PC3_ScatterPlot, 
-             PC1_PC2_ScatterPlot,
-             PC1_PC3_ScatterPlot,
-             PC3_PC2_ScatterPlot,
-             ncol = 2)
+splom(~EDA[,sapply(EDA, is.numeric)],
+      groups = EDA$Cancer,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "PCA" )
 
 ```
 
@@ -527,12 +495,127 @@ grid.arrange(PC1_PC2_PC3_ScatterPlot,
 ###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 
 ```{r section_1.5.1, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting DBSCAN parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(DBSCAN_minPts = ncol(CA.Numeric) + 1)
+
+##################################
+# Inspecting the k-NN distance plot
+##################################
+kNNdistplot(CA.Numeric.Matrix, minPts = DBSCAN_minPts)
+abline(h=16, col="red", lty=2)
+DBSCAN_eps <- 16
+
+##################################
+# Implementing the DBSCAN Algorithm
+##################################
+(CA_DBSCAN <- dbscan(CA.Numeric.Matrix, 
+                    eps = DBSCAN_eps, 
+                    minPts = DBSCAN_minPts))
+
+CA_DBSCAN_Summary <- CA
+CA_DBSCAN_Summary$DBSCAN_Cluster <- ifelse(CA_DBSCAN$cluster==0,
+                                           "Outlier",
+                                           paste0("Cluster ",as.character(CA_DBSCAN$cluster)))
+
+CA_DBSCAN_Summary$DBSCAN_Cluster <- factor(CA_DBSCAN_Summary$DBSCAN_Cluster,
+                                           levels=c("Outlier", 
+                                                    "Cluster 1", 
+                                                    "Cluster 2", 
+                                                    "Cluster 3", 
+                                                    "Cluster 4"))
+CA_DBSCAN_Summary
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by cancer
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
+       data = CA_DBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (DBSCAN)")
+
+splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
+      groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "DBSCAN" )
 
 ```
 
 ###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
 
 ```{r section_1.5.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting HDBSCAN parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(HDBSCAN_minPts = ncol(CA.Numeric)*2)
+
+##################################
+# Implementing the HDBSCAN Algorithm
+##################################
+(CA_HDBSCAN <- hdbscan(CA.Numeric.Matrix, 
+                    minPts = HDBSCAN_minPts))
+plot(CA_HDBSCAN, show_flat=TRUE)
+
+CA_HDBSCAN_Summary <- CA
+CA_HDBSCAN_Summary$HDBSCAN_Cluster <- ifelse(CA_HDBSCAN$cluster==0,
+                                             "Outlier",
+                                             paste0("Cluster ",as.character(CA_HDBSCAN$cluster)))
+
+CA_HDBSCAN_Summary$HDBSCAN_Cluster <- factor(CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+                                             levels=c("Outlier", 
+                                                      "Cluster 1", 
+                                                      "Cluster 2"))
+CA_HDBSCAN_Summary
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by cancer
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+       data = CA_HDBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (HDBSCAN)")
+
+splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
+      groups = CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "HDBSCAN" )
 
 ```
 
@@ -545,12 +628,125 @@ grid.arrange(PC1_PC2_PC3_ScatterPlot,
 ###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
 
 ```{r section_1.5.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting JPCLUST parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(JPCLUST_k  = ncol(CA.Numeric)*2)
+(JPCLUST_kt = JPCLUST_k/2)
+
+##################################
+# Implementing the JPCLUST Algorithm
+##################################
+(CA_JPCLUST <- jpclust(CA.Numeric.Matrix,
+                       k = JPCLUST_k,
+                       kt = JPCLUST_kt))
+table(CA_JPCLUST$cluster)
+
+CA_JPCLUST_Summary <- CA
+CA_JPCLUST_Summary$JPCLUST_Cluster <- paste0("Cluster ",as.character(CA_JPCLUST$cluster))
+
+CA_JPCLUST_Summary$JPCLUST_Cluster <- factor(CA_JPCLUST_Summary$JPCLUST_Cluster,
+                                             levels=c("Cluster 1", 
+                                                      "Cluster 2", 
+                                                      "Cluster 3", 
+                                                      "Cluster 4"))
+CA_JPCLUST_Summary
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by cancer
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_JPCLUST_Summary$JPCLUST_Cluster,
+       data = CA_JPCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (JPCLUST)")
+
+splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
+      groups = CA_JPCLUST_Summary$JPCLUST_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "JPCLUST" )
 
 ```
 
 ###  1.5.5 Shared Nearest Neighbor Clusterings (SNNCLUST)
 
 ```{r section_1.5.5, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting SNNCLUST parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(SNNCLUST_k  = ncol(CA.Numeric)*2)
+(SNNCLUST_minPts = ncol(CA.Numeric) + 1)
+SNNCLUST_eps <- 5
+
+##################################
+# Implementing the SNNCLUST Algorithm
+##################################
+(CA_SNNCLUST <- sNNclust(CA.Numeric.Matrix,
+                       k = SNNCLUST_k,
+                       minPts = SNNCLUST_minPts,
+                       eps = SNNCLUST_eps))
+table(CA_SNNCLUST$cluster)
+
+CA_SNNCLUST_Summary <- CA
+CA_SNNCLUST_Summary$SNNCLUST_Cluster <- ifelse(CA_SNNCLUST$cluster==0,
+                                             "Outlier",
+                                             paste0("Cluster ",as.character(CA_SNNCLUST$cluster)))
+
+CA_SNNCLUST_Summary$SNNCLUST_Cluster <- factor(CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+                                             levels=c("Outlier", 
+                                                      "Cluster 1", 
+                                                      "Cluster 2",
+                                                      "Cluster 3", 
+                                                      "Cluster 4"))
+CA_SNNCLUST_Summary
+ 
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by cancer
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+       data = CA_SNNCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (SNNCLUST)")
+
+splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
+      groups = CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "SNNCLUST" )
 
 ```
 
