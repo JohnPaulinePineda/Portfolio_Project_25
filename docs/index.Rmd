@@ -1,0 +1,620 @@
+---
+title: "R : Identifying Multivariate Outliers Using Density-Based Clustering Algorithms"
+author: "John Pauline Pineda"
+date: "February 8, 2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: readable
+    highlight: tango
+    css: doc.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
+```
+# **1. Table of Contents**
+|
+| This document implements density-based clustering algorithms for identifying multivariate outliers using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>.    
+|
+##  1.1 Sample Data
+|
+| The <mark style="background-color: #EEEEEE;color: #FF0000">**NCI6**</mark>  dataset from the  <mark style="background-color: #CCECFF">**ISLR**</mark> package was used for this illustrated example. Only a subset of observations representing major cancer types was used for the analysis. To simplify computations, only three descriptive variables were considered in the clustering process.    
+|
+| Preliminary dataset assessment:
+|
+| **[A]** 40 rows (observations)
+| 
+| **[B]** 6831 columns (variables)
+|      **[B.1]** 1/6831 label = <span style="color: #FF0000">labs</span> variable (factor)
+|             **[B.1.1]** Category 1 = <span style="color: #FF0000">labs=NSCLC</span> 
+|             **[B.1.2]** Category 2 = <span style="color: #FF0000">labs=RENAL</span> 
+|             **[B.1.3]** Category 3 = <span style="color: #FF0000">labs=MELANOMA</span> 
+|             **[B.1.4]** Category 4 = <span style="color: #FF0000">labs=BREAST</span> 
+|             **[B.1.5]** Category 5 = <span style="color: #FF0000">labs=COLON</span> 
+|      **[B.2]** 6830/6831 descriptors = 6830/6830 numeric
+|     
+|  
+```{r section_1.1, warning=FALSE, message=FALSE}
+##################################
+# Loading R libraries
+##################################
+library(AppliedPredictiveModeling)
+library(caret)
+library(rpart)
+library(lattice)
+library(dplyr)
+library(tidyr)
+library(moments)
+library(skimr)
+library(RANN)
+library(pls)
+library(corrplot)
+library(tidyverse)
+library(lares)
+library(DMwR)
+library(gridExtra)
+library(rattle)
+library(RColorBrewer)
+library(stats)
+library(ISLR)
+library(factoextra)
+library(NbClust)
+library(cluster)
+
+##################################
+# Loading source and
+# formulating the train set
+##################################
+data(NCI60)
+NCI60 <- as.data.frame(NCI60)
+
+##################################
+# Filtering in the data subset for analysis
+# and setting appropriate variable types
+##################################
+NCI60.Reference <- NCI60
+
+NCI60 <- NCI60[NCI60$labs %in% c("BREAST",
+                                 "RENAL",
+                                 "MELANOMA",
+                                 "NSCLC",
+                                 "COLON"),]
+
+NCI60$labs <- as.factor(NCI60$labs)
+
+NCI60$labs <- factor(NCI60$labs,
+                     levels=c("BREAST",
+                                 "RENAL",
+                                 "MELANOMA",
+                                 "NSCLC",
+                                 "COLON"))
+
+##################################
+# Performing a general exploration of the data set
+##################################
+dim(NCI60)
+str(NCI60)
+summary(NCI60)
+
+##################################
+# Formulating a data type assessment summary
+##################################
+PDA <- NCI60
+(PDA.Summary <- data.frame(
+  Column.Index=c(1:length(names(PDA))),
+  Column.Name= names(PDA), 
+  Column.Type=sapply(PDA, function(x) class(x)), 
+  row.names=NULL)
+)
+```
+##  1.2 Data Quality Assessment
+|
+| Data quality assessment:
+|
+| **[A]** No missing observations noted for any variable.
+|
+| **[B]** Low variance observed for 610 variables with First.Second.Mode.Ratio>5.
+|
+| **[C]** No low variance observed for any variable with Unique.Count.Ratio<0.01.
+|
+| **[D]** High skewness observed for 14 variables with Skewness>3 or Skewness<(-3).
+| 
+| **[E]** Considering the unsupervised learning nature of the analysis, no data pre-processing was proceeded to address the data quality issues identified.
+|
+```{r section_1.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DQA <- NCI60
+
+##################################
+# Formulating an overall data quality assessment summary
+##################################
+(DQA.Summary <- data.frame(
+  Column.Index=c(1:length(names(DQA))),
+  Column.Name= names(DQA),
+  Column.Type=sapply(DQA, function(x) class(x)),
+  Row.Count=sapply(DQA, function(x) nrow(DQA)),
+  NA.Count=sapply(DQA,function(x)sum(is.na(x))),
+  Fill.Rate=sapply(DQA,function(x)format(round((sum(!is.na(x))/nrow(DQA)),3),nsmall=3)),
+  row.names=NULL)
+)
+
+##################################
+# Listing all descriptors
+##################################
+DQA.Descriptors <- DQA
+
+##################################
+# Listing all numeric Descriptors
+##################################
+DQA.Descriptors.Numeric <- DQA.Descriptors[,sapply(DQA.Descriptors, is.numeric)]
+
+if (length(names(DQA.Descriptors.Numeric))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Descriptors.Numeric))),
+               " numeric descriptor variable(s)."))
+} else {
+  print("There are no numeric descriptor variables.")
+}
+
+##################################
+# Listing all factor Descriptors
+##################################
+DQA.Descriptors.Factor <- DQA.Descriptors[,sapply(DQA.Descriptors, is.factor)]
+
+if (length(names(DQA.Descriptors.Factor))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Descriptors.Factor))),
+               " factor descriptor variable(s)."))
+} else {
+  print("There are no factor descriptor variables.")
+}
+
+##################################
+# Formulating a data quality assessment summary for factor Descriptors
+##################################
+if (length(names(DQA.Descriptors.Factor))>0) {
+
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = x[!(x %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return("x"),
+           return(usm[tabsm == max(tabsm)]))
+  }
+
+  (DQA.Descriptors.Factor.Summary <- data.frame(
+  Column.Name= names(DQA.Descriptors.Factor),
+  Column.Type=sapply(DQA.Descriptors.Factor, function(x) class(x)),
+  Unique.Count=sapply(DQA.Descriptors.Factor, function(x) length(unique(x))),
+  First.Mode.Value=sapply(DQA.Descriptors.Factor, function(x) as.character(FirstModes(x)[1])),
+  Second.Mode.Value=sapply(DQA.Descriptors.Factor, function(x) as.character(SecondModes(x)[1])),
+  First.Mode.Count=sapply(DQA.Descriptors.Factor, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Descriptors.Factor, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  Unique.Count.Ratio=sapply(DQA.Descriptors.Factor, function(x) format(round((length(unique(x))/nrow(DQA.Descriptors.Factor)),3), nsmall=3)),
+  First.Second.Mode.Ratio=sapply(DQA.Descriptors.Factor, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  row.names=NULL)
+  )
+
+}
+
+##################################
+# Formulating a data quality assessment summary for numeric Descriptors
+##################################
+if (length(names(DQA.Descriptors.Numeric))>0) {
+
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = na.omit(x)[!(na.omit(x) %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return(0.00001),
+           return(usm[tabsm == max(tabsm)]))
+  }
+
+  (DQA.Descriptors.Numeric.Summary <- data.frame(
+  Column.Name= names(DQA.Descriptors.Numeric),
+  Column.Type=sapply(DQA.Descriptors.Numeric, function(x) class(x)),
+  Unique.Count=sapply(DQA.Descriptors.Numeric, function(x) length(unique(x))),
+  Unique.Count.Ratio=sapply(DQA.Descriptors.Numeric, function(x) format(round((length(unique(x))/nrow(DQA.Descriptors.Numeric)),3), nsmall=3)),
+  First.Mode.Value=sapply(DQA.Descriptors.Numeric, function(x) format(round((FirstModes(x)[1]),3),nsmall=3)),
+  Second.Mode.Value=sapply(DQA.Descriptors.Numeric, function(x) format(round((SecondModes(x)[1]),3),nsmall=3)),
+  First.Mode.Count=sapply(DQA.Descriptors.Numeric, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Descriptors.Numeric, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  First.Second.Mode.Ratio=sapply(DQA.Descriptors.Numeric, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  Minimum=sapply(DQA.Descriptors.Numeric, function(x) format(round(min(x,na.rm = TRUE),3), nsmall=3)),
+  Mean=sapply(DQA.Descriptors.Numeric, function(x) format(round(mean(x,na.rm = TRUE),3), nsmall=3)),
+  Median=sapply(DQA.Descriptors.Numeric, function(x) format(round(median(x,na.rm = TRUE),3), nsmall=3)),
+  Maximum=sapply(DQA.Descriptors.Numeric, function(x) format(round(max(x,na.rm = TRUE),3), nsmall=3)),
+  Skewness=sapply(DQA.Descriptors.Numeric, function(x) format(round(skewness(x,na.rm = TRUE),3), nsmall=3)),
+  Kurtosis=sapply(DQA.Descriptors.Numeric, function(x) format(round(kurtosis(x,na.rm = TRUE),3), nsmall=3)),
+  Percentile25th=sapply(DQA.Descriptors.Numeric, function(x) format(round(quantile(x,probs=0.25,na.rm = TRUE),3), nsmall=3)),
+  Percentile75th=sapply(DQA.Descriptors.Numeric, function(x) format(round(quantile(x,probs=0.75,na.rm = TRUE),3), nsmall=3)),
+  row.names=NULL)
+  )
+
+}
+
+##################################
+# Identifying potential data quality issues
+##################################
+
+##################################
+# Checking for missing observations
+##################################
+if ((nrow(DQA.Summary[DQA.Summary$NA.Count>0,]))>0){
+  print(paste0("Missing observations noted for ",
+               (nrow(DQA.Summary[DQA.Summary$NA.Count>0,])),
+               " variable(s) with NA.Count>0 and Fill.Rate<1.0."))
+  DQA.Summary[DQA.Summary$NA.Count>0,]
+} else {
+  print("No missing observations noted.")
+}
+
+##################################
+# Checking for zero or near-zero variance Descriptors
+##################################
+if (length(names(DQA.Descriptors.Factor))==0) {
+  print("No factor descriptors noted.")
+} else if (nrow(DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,])),
+               " factor variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance factor descriptors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,])),
+               " numeric variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance numeric descriptors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,])),
+               " numeric variable(s) with Unique.Count.Ratio<0.01."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,]
+} else {
+  print("No low variance numeric descriptors due to low unique count ratio noted.")
+}
+
+##################################
+# Checking for skewed Descriptors
+##################################
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),])>0){
+  print(paste0("High skewness observed for ",
+  (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),])),
+  " numeric variable(s) with Skewness>3 or Skewness<(-3)."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                 as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),]
+} else {
+  print("No skewed numeric descriptors noted.")
+}
+
+```
+
+##  1.3 Data Preprocessing
+
+###  1.3.1 Centering and Scaling
+|
+| Centering and Scaling data assessment:
+|
+| **[A]** To maintain an objective comparison across the different descriptors, centering and scaling transformation was applied on the numeric variables. The <span style="color: #0000FF">center</span> method from the <mark style="background-color: #CCECFF">**caret**</mark> package was implemented which subtracts the average value of a numeric variable to all the values. As a result of centering, the variables had zero mean values. In addition, the <span style="color: #0000FF">scale</span> method, also from the <mark style="background-color: #CCECFF">**caret**</mark> package, was applied which performs a center transformation with each value of the variable divided by its standard deviation. Scaling the data coerced the values to have a common standard deviation of one.
+|
+```{r section_1.3.1, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DPA <- NCI60
+
+##################################
+# Listing all descriptors
+##################################
+DPA.Descriptors <- DPA
+
+##################################
+# Listing all numeric descriptors
+##################################
+DPA.Descriptors.Numeric <- DPA.Descriptors[,sapply(DPA.Descriptors, is.numeric)]
+
+##################################
+# Applying a center and scale data transformation
+##################################
+DPA.Descriptors.Numeric_CenteredScaled <- preProcess(DPA.Descriptors.Numeric, method = c("center","scale"))
+DPA.Descriptors.Numeric_CenteredScaledTransformed <- predict(DPA.Descriptors.Numeric_CenteredScaled, DPA.Descriptors.Numeric)
+row.names(DPA.Descriptors.Numeric_CenteredScaledTransformed) <- NULL
+
+```
+
+###  1.3.2 Dimensionality Reduction
+
+```{r section_1.3.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+Cancer <- NCI60$labs
+NCI60_Transformed <- cbind(DPA.Descriptors.Numeric_CenteredScaledTransformed, Cancer )
+
+DR <- as.data.frame(NCI60_Transformed)
+
+DR.Numeric <- DR[,sapply(DR, is.numeric)]
+
+row.names(DR.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Performing PCA
+##################################
+DR_PCA <- prcomp(DR.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(DR_PCA$x) <- NULL
+DR_PCA$x <- as.data.frame(DR_PCA$x)
+(DR_PCA_FULL <- cbind(DR_PCA$x, Cancer))
+
+##################################
+# Creating a data subset only containing
+# the first three principal components
+##################################
+(DR_PCA_SUBSET <- DR_PCA_FULL[,c("Cancer",
+                                "PC1",
+                                "PC2",
+                                "PC3")])
+
+```
+
+## 1.4 Data Exploration
+|
+| Exploratory data analysis:
+|
+| **[A]** Most descriptors demonstrated differential relationships across the different levels of the <span style="color: #FF0000">Cancer</span> variable. Although, as driven by the huge number, the best descriptors cannot be clearly established. 
+|
+```{r section_1.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+EDA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Creating a function to define the
+# range of descriptors for plotting
+##################################
+
+featurePlotRange <- function(start,end){
+
+  ##################################
+  # Listing all Descriptors
+  ##################################
+  EDA.Descriptors <- EDA[,start:end]
+  EDA.Descriptors.Numeric <- EDA.Descriptors[,sapply(EDA.Descriptors, is.numeric)]
+
+  ##################################
+  # Formulating the box plots
+  ##################################
+  featurePlotResult <- featurePlot(x = EDA.Descriptors.Numeric,
+            y = EDA$Cancer,
+            plot = "box",
+            scales = list(x = list(relation="free", rot = 90),
+                          y = list(relation="free")),
+            adjust = 1.5,
+            pch = "|",
+            layout = c(1,ncol(EDA.Descriptors.Numeric)))
+
+  return(featurePlotResult)
+
+}
+
+##################################
+# Creating univariate plots
+# for the principal components
+# grouped by cancer
+##################################
+featurePlotRange(1,4)
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by cancer
+##################################
+PC1_PC2_PC3_ScatterPlot <- cloud(PC1 ~ PC2*PC3,
+      groups = EDA$Cancer,
+       data = EDA,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PC1 VERSUS PC2 VERSUS PC3 BY CANCER")
+
+PC1_PC2_ScatterPlot <- xyplot(PC1 ~ PC2,
+       groups = EDA$Cancer,
+       data = EDA,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PC1 VERSUS PC2 BY CANCER")
+
+PC1_PC3_ScatterPlot <- xyplot(PC1 ~ PC3,
+       groups = EDA$Cancer,
+       data = EDA,
+       xlab = "PC3",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PC1 VERSUS PC3 BY CANCER")
+
+PC3_PC2_ScatterPlot <- xyplot(PC3 ~ PC2,
+       groups = EDA$Cancer,
+       data = EDA,
+       xlab = "PC2",
+       ylab = "PC3",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PC2 VERSUS PC3 BY CANCER")
+
+grid.arrange(PC1_PC2_PC3_ScatterPlot, 
+             PC1_PC2_ScatterPlot,
+             PC1_PC3_ScatterPlot,
+             PC3_PC2_ScatterPlot,
+             ncol = 2)
+
+```
+
+## 1.5 Density-Based Clustering
+
+###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
+
+```{r section_1.5.1, warning=FALSE, message=FALSE}
+
+```
+
+###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
+
+```{r section_1.5.2, warning=FALSE, message=FALSE}
+
+```
+
+###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
+
+```{r section_1.5.3, warning=FALSE, message=FALSE}
+
+```
+
+###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
+
+```{r section_1.5.4, warning=FALSE, message=FALSE}
+
+```
+
+###  1.5.5 Shared Nearest Neighbor Clusterings (SNNCLUST)
+
+```{r section_1.5.5, warning=FALSE, message=FALSE}
+
+```
+
+##  1.6 Algorithm Comparison Summary
+
+```{r section_1.5.6, warning=FALSE, message=FALSE}
+
+```
+
+##  1.7 References
+|
+| **[Book]** [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson
+| **[Book]** [An Introduction to Statistical Learning](https://www.statlearning.com/) by Gareth James, Daniela Witten, Trevor Hastie and Rob Tibshirani
+| **[Book]** [Multivariate Data Visualization with R](http://lmdvr.r-forge.r-project.org/figures/figures.html) by Deepayan Sarkar
+| **[Book]** [Machine Learning](https://bookdown.org/ssjackson300/Machine-Learning-Lecture-Notes/) by Samuel Jackson
+| **[Book]** [Data Modeling Methods](https://bookdown.org/larget_jacob/data-modeling-methods/) by Jacob Larget
+| **[Book]** [Introduction to R and Statistics](https://saestatsteaching.tech/) by University of Western Australia
+| **[Book]** [Feature Engineering and Selection: A Practical Approach for Predictive Models](http://www.feat.engineering/index.html) by Max Kuhn and Kjell Johnson
+| **[Book]** [Introduction to Research Methods](https://bookdown.org/ejvanholm/Textbook/) by Eric van Holm
+| **[R Package]** [AppliedPredictiveModeling](https://cran.r-project.org/web//packages/AppliedPredictiveModeling/AppliedPredictiveModeling.pdf) by Max Kuhn
+| **[R Package]** [caret](https://topepo.github.io/caret/index.html) by Max Kuhn
+| **[R Package]** [rpart](https://mran.microsoft.com/web/packages/rpart/rpart.pdf) by Terry Therneau and Beth Atkinson
+| **[R Package]** [lattice](https://cran.r-project.org/web/packages/lattice/lattice.pdf) by  Deepayan Sarkar
+| **[R Package]** [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html/) by Hadley Wickham
+| **[R Package]** [moments](https://cran.r-project.org/web/packages/moments/index.html) by Lukasz Komsta and Frederick
+| **[R Package]** [skimr](https://cran.r-project.org/web/packages/skimr/skimr.pdf) by  Elin Waring
+| **[R Package]** [RANN](https://cran.r-project.org/web/packages/RANN/RANN.pdf) by  Sunil Arya, David Mount, Samuel Kemp and Gregory Jefferis
+| **[R Package]** [corrplot](https://cran.r-project.org/web/packages/corrplot/corrplot.pdf) by Taiyun Wei
+| **[R Package]** [tidyverse](https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf) by Hadley Wickham
+| **[R Package]** [lares](https://cran.rstudio.com/web/packages/lares/lares.pdf) by Bernardo Lares
+| **[R Package]** [DMwR](https://mran.microsoft.com/snapshot/2016-05-02/web/packages/DMwR/DMwR.pdf) by Luis Torgo
+| **[R Package]** [gridExtra](https://cran.r-project.org/web/packages/gridExtra/gridExtra.pdf) by Baptiste Auguie and Anton Antonov
+| **[R Package]** [rattle](https://cran.r-project.org/web/packages/rattle/rattle.pdf) by Graham Williams
+| **[R Package]** [RColorBrewer](https://cran.r-project.org/web//packages/RColorBrewer/RColorBrewer.pdf) by Erich Neuwirth
+| **[R Package]** [stats](https://search.r-project.org/R/refmans/stats/html/00Index.html) by R Core Team
+| **[R Package]** [ISLR](https://cran.r-project.org/web/packages/ISLR/ISLR.pdf) by Trevor Hastie
+| **[R Package]** [factoextra](https://cran.r-project.org/web/packages/factoextra/factoextra.pdf) by Alboukadel Kassambara
+| **[R Package]** [NbClust](https://cran.r-project.org/web/packages/NbClust/NbClust.pdf) by Malika Charrad, Nadia Ghazzali, Veronique Boiteau and Azam Niknafs
+| **[R Package]** [cluster](https://cran.r-project.org/web/packages/cluster/cluster.pdf) by Martin Maechler
+| **[Article]** [Cluster Analysis in R Simplified and Enhanced](https://www.datanovia.com/en/blog/cluster-analysis-in-r-simplified-and-enhanced/) by Datanovia Team
+| **[Article]** [Cluster Validation Essentials](http://www.sthda.com/english/articles/29-cluster-validation-essentials/96-determiningthe-optimal-number-of-clusters-3-must-know-methods/) by Alboukadel Kassambara
+| **[Article]** [Data Preparation and R Packages for Cluster Analysis](https://www.datanovia.com/en/lessons/data-preparation-and-r-packages-for-cluster-analysis/) by Datanovia Team
+| **[Article]** [The Complete Guide to Clustering Analysis: K-Means and Hierarchical Clustering by Hand and in R](https://statsandr.com/blog/clustering-analysis-k-means-and-hierarchical-clustering-by-hand-and-in-r/#silhouette-method) by Antoine Soetewey
+| **[Article]** [Practical Guide to Clustering Algorithms & Evaluation in R](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/clustering-algorithms-evaluation-r/tutorial/) by Hacker Earth Team
+| **[Article]** [Measures for Comparing Clustering Algorithms](https://www.datanovia.com/en/lessons/choosing-the-best-clustering-algorithms/#:~:text=Compare%20clustering%20algorithms%20in%20R%20We%E2%80%99ll%20use%20the,%22average%22%29%20obj%3A%20A%20numeric%20matrix%20or%20data%20frame.) by Datanovia Team
+| **[Article]** [K-Means Clustering – Introduction](https://www.geeksforgeeks.org/k-means-clustering-introduction/) by Geeks For Geeks Team
+| **[Article]** [K- Means Clustering Algorithm](https://www.educba.com/k-means-clustering-algorithm/) by Priya Pedamkar
+| **[Article]** [K-Means Clustering Algorithm: Applications, Types, and How Does It Work?](https://www.simplilearn.com/tutorials/machine-learning-tutorial/k-means-clustering-algorithm) by Mayank Banoula
+| **[Article]** [A New Partitioning Around Medoids Algorithm](https://www.stat.ubc.ca/new-partitioning-around-medoids-algorithm) by Mark Van der Laan, Katherine Pollard and Jennifer Bryan
+| **[Article]** [ML | K-Medoids Clustering With Solved Example](https://www.geeksforgeeks.org/ml-k-medoids-clustering-with-example/) by Geeks For Geeks Team
+| **[Article]** [Fuzzy Clustering Essentials](https://www.datanovia.com/en/lessons/fuzzy-clustering-essentials/#:~:text=The%20fuzzy%20clustering%20is%20considered%20as%20soft%20clustering%2C,the%20degree%20of%20being%20in%20a%20given%20cluster.) by Datanovia Team
+| **[Article]** [Types of Clustering](https://www.educba.com/types-of-clustering/) by Priya Pedamkar
+| **[Article]** [What is Fuzzy Clustering?](https://www.statisticshowto.com/fuzzy-clustering/) by Statistics How To Team
+| **[Article]** [ML | Fuzzy Clustering](https://www.geeksforgeeks.org/ml-fuzzy-clustering/) by Geeks For Geeks Team
+| **[Article]** [What is Hierarchical Clustering?](https://www.displayr.com/what-is-hierarchical-clustering/) by Tim Bock
+| **[Article]** [What is Hierarchical Clustering? An Introduction to Hierarchical Clustering](https://www.mygreatlearning.com/blog/hierarchical-clustering/) by Great Learning Team
+| **[Article]** [Difference Between K-Means and Hierarchical Clustering](https://www.geeksforgeeks.org/difference-between-k-means-and-hierarchical-clustering/) by Geeks For Geeks Team
+| **[Article]** [What is Hierarchical Clustering and How Does It Work](https://www.simplilearn.com/tutorials/data-science-tutorial/hierarchical-clustering-in-r) by Simplilearn Team
+| **[Article]** [Hierarchical Clustering Explained with Python Example](https://vitalflux.com/hierarchical-clustering-explained-with-python-example/) by Ajitesh Kumar
+| **[Article]** [Agglomerative Hierarchical Clustering](https://www.datanovia.com/en/lessons/agglomerative-hierarchical-clustering/#:~:text=The%20agglomerative%20clustering%20is%20the%20most%20common%20type,by%20treating%20each%20object%20as%20a%20singleton%20cluster.) by Datanovia Team
+| **[Article]** [Divisive Hierarchical Clustering](https://www.datanovia.com/en/lessons/divisive-hierarchical-clustering/) by Datanovia Team
+| **[Article]** [ML | Hierarchical clustering (Agglomerative and Divisive clustering)](https://www.geeksforgeeks.org/ml-hierarchical-clustering-agglomerative-and-divisive-clustering/) by Geeks For Geeks Team
+| **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
+|
+|
+|
+|
