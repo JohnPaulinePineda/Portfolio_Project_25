@@ -617,6 +617,29 @@ CA_HDBSCAN_Summary$HDBSCAN_Cluster <- factor(CA_HDBSCAN_Summary$HDBSCAN_Cluster,
 CA_HDBSCAN_Summary
 
 ##################################
+# Compare similarity of results
+# between the cancer groups
+# and the formulated HDBSCAN clusters
+# ignoring the identified outliers
+##################################
+CA_HDBSCAN_Evaluation <- CA_HDBSCAN_Summary[CA_HDBSCAN_Summary$HDBSCAN_Cluster!="Outlier",]
+CA_HDBSCAN_Evaluation$Cancer <- factor(CA_HDBSCAN_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_HDBSCAN_Evaluation$CancerGroups <- as.numeric(CA_HDBSCAN_Evaluation$Cancer)
+CA_HDBSCAN_Evaluation$HDBSCAN_ClusterGroups <- as.numeric(CA_HDBSCAN_Evaluation$HDBSCAN_Cluster)
+
+CA_HDBSCAN_Evaluation
+
+(CA_HDBSCAN_RandIndex <- rand.index(CA_HDBSCAN_Evaluation$CancerGroups,
+                                  CA_HDBSCAN_Evaluation$HDBSCAN_ClusterGroups))
+
+
+##################################
 # Creating multivariate plots
 # for the principal components
 # grouped by HDBSCAN clusters
