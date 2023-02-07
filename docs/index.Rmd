@@ -542,9 +542,9 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 |      **[B.1]** <span style="color: #FF0000">eps</span> = size (radius) of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
 |      **[B.2]** <span style="color: #FF0000">minPts</span> = number of minimum points required in the eps neighborhood for core points (including the point itself) held constant at a value of 4 determined from the number of component descriptors plus one.
 |
-| **[C]** 5 groups were obtained including 1 outlier group and 4 informative clusters.
+| **[C]** The algorithm identified 4 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
 |
-| **[D]** The clustering performance is summarized as follows:
+| **[D]** The clustering algorithm performance is summarized as follows:
 |      **[D.1]** Outlier Detection Rate = 0.32500
 |      **[D.2]** Rand Index = 0.83190
 |
