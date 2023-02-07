@@ -995,7 +995,24 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 ```
 
 ###  1.5.5 Shared Nearest Neighbor Clusterings (SNNCLUST)
-
+|
+| **[A]** The SNNCLUST algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+|
+| **[B]** The algorithm contains 3 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification to create the shared nearest neighbor graph held constant at a value of 6 determined from the number of component descriptors multiplied by two.
+|      **[B.2]** <span style="color: #FF0000">eps</span> = two objects are only reachable from each other if they share at least eps nearest neighbors held constant at a value of 5.
+|      **[B.3]** <span style="color: #FF0000">minPts</span> = minimum number of points that share at least eps nearest neighbors for a point to be considered a core points held constant at a value of 4 determined from the number of component descriptors increased by one.
+|
+| **[C]** The algorithm identified 4 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.40000
+|      **[D.2]** Rand Index = 0.93115
+|
+| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=NSCLC</span>. 
+|
+| **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span>, <span style="color: #FF0000">labs=RENAL</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative.
+|
 ```{r section_1.5.5, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
