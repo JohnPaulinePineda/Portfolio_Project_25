@@ -802,6 +802,28 @@ CA_JPCLUST_Summary$JPCLUST_Cluster <- factor(CA_JPCLUST_Summary$JPCLUST_Cluster,
 CA_JPCLUST_Summary
 
 ##################################
+# Compare similarity of results
+# between the cancer groups
+# and the formulated JPCLUST clusters
+# ignoring the identified outliers (Cluster 1)
+##################################
+CA_JPCLUST_Evaluation <- CA_JPCLUST_Summary[CA_JPCLUST_Summary$JPCLUST_Cluster!="Cluster 1",]
+CA_JPCLUST_Evaluation$Cancer <- factor(CA_JPCLUST_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_JPCLUST_Evaluation$CancerGroups <- as.numeric(CA_JPCLUST_Evaluation$Cancer)
+CA_JPCLUST_Evaluation$JPCLUST_ClusterGroups <- as.numeric(CA_JPCLUST_Evaluation$JPCLUST_Cluster)
+
+CA_JPCLUST_Evaluation
+
+(CA_JPCLUST_RandIndex <- rand.index(CA_JPCLUST_Evaluation$CancerGroups,
+                                  CA_JPCLUST_Evaluation$JPCLUST_ClusterGroups))
+
+##################################
 # Creating multivariate plots
 # for the principal components
 # grouped by JPCLUST clusters
@@ -865,7 +887,29 @@ CA_SNNCLUST_Summary$SNNCLUST_Cluster <- factor(CA_SNNCLUST_Summary$SNNCLUST_Clus
                                                       "Cluster 3", 
                                                       "Cluster 4"))
 CA_SNNCLUST_Summary
- 
+
+##################################
+# Compare similarity of results
+# between the cancer groups
+# and the formulated SNNCLUST clusters
+# ignoring the identified outliers
+##################################
+CA_SNNCLUST_Evaluation <- CA_SNNCLUST_Summary[CA_SNNCLUST_Summary$SNNCLUST_Cluster!="Outlier",]
+CA_SNNCLUST_Evaluation$Cancer <- factor(CA_SNNCLUST_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_SNNCLUST_Evaluation$CancerGroups <- as.numeric(CA_SNNCLUST_Evaluation$Cancer)
+CA_SNNCLUST_Evaluation$SNNCLUST_ClusterGroups <- as.numeric(CA_SNNCLUST_Evaluation$SNNCLUST_Cluster)
+
+CA_SNNCLUST_Evaluation
+
+(CA_SNNCLUST_RandIndex <- rand.index(CA_SNNCLUST_Evaluation$CancerGroups,
+                                  CA_SNNCLUST_Evaluation$SNNCLUST_ClusterGroups))
+
 ##################################
 # Creating multivariate plots
 # for the principal components
