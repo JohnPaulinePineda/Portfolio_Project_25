@@ -539,7 +539,7 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 | **[A]** The DBSCAN algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
-|      **[B.1]** <span style="color: #FF0000">eps</span> = size (radius) of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where <span style="color: #FF0000">minPts</span> is assigned as k).
+|      **[B.1]** <span style="color: #FF0000">eps</span> = size (radius) of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
 |      **[B.2]** <span style="color: #FF0000">minPts</span> = number of minimum points required in the eps neighborhood for core points (including the point itself) held constant at a value of 4 determined from the number of component descriptors plus one.
 |
 | **[C]** 5 groups were obtained including 1 outlier group and 4 informative clusters.
