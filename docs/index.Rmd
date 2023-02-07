@@ -757,7 +757,23 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 ```
 
 ###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
-
+|
+| **[A]** The OPTICS algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+|
+| **[B]** The algorithm contains 2 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">eps</span> = upper limit of the size of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
+|      **[B.2]** <span style="color: #FF0000">minPts</span> = parameter used to identify dense neighborhoods and the reachability distance is calculated as the distance to the minPts nearest neighbor held constant at a value of 4 determined from the number of component descriptors increased by one.
+|
+| **[C]** Using the eps parameter as the threshold for the reachability plot, the algorithm identified 4 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.37500
+|      **[D.2]** Rand Index = 0.82667
+|
+| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+|
+| **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
+|
 ```{r section_1.5.3, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -794,6 +810,7 @@ plot(CA_OPTICS)
 ##################################
 # Extracting a DBSCAN clustering 
 # by cutting the reachability plot at eps_cl
+##################################
 CA_OPTICS_DBSCAN <- extractDBSCAN(CA_OPTICS, 
                                   eps_cl = 16)
 CA_OPTICS_DBSCAN
