@@ -63,6 +63,7 @@ library(factoextra)
 library(NbClust)
 library(cluster)
 library(dbscan)
+library(fossil)
 
 ##################################
 # Loading source and
@@ -535,9 +536,31 @@ CA_DBSCAN_Summary$DBSCAN_Cluster <- factor(CA_DBSCAN_Summary$DBSCAN_Cluster,
 CA_DBSCAN_Summary
 
 ##################################
+# Compare similarity of results
+# between the cancer groups
+# and the formulated DBSCAN clusters
+# ignoring the identified outliers
+##################################
+CA_DBSCAN_Evaluation <- CA_DBSCAN_Summary[CA_DBSCAN_Summary$DBSCAN_Cluster!="Outlier",]
+CA_DBSCAN_Evaluation$Cancer <- factor(CA_DBSCAN_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_DBSCAN_Evaluation$CancerGroups <- as.numeric(CA_DBSCAN_Evaluation$Cancer)
+CA_DBSCAN_Evaluation$DBSCAN_ClusterGroups <- as.numeric(CA_DBSCAN_Evaluation$DBSCAN_Cluster)
+
+CA_DBSCAN_Evaluation
+
+(CA_DBSCAN_RandIndex <- rand.index(CA_DBSCAN_Evaluation$CancerGroups,
+                                  CA_DBSCAN_Evaluation$DBSCAN_ClusterGroups))
+
+##################################
 # Creating multivariate plots
 # for the principal components
-# grouped by cancer
+# grouped by DBSCAN clusters
 ##################################
 cloud(PC1 ~ PC2*PC3,
       groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
@@ -596,7 +619,7 @@ CA_HDBSCAN_Summary
 ##################################
 # Creating multivariate plots
 # for the principal components
-# grouped by cancer
+# grouped by HDBSCAN clusters
 ##################################
 cloud(PC1 ~ PC2*PC3,
       groups = CA_HDBSCAN_Summary$HDBSCAN_Cluster,
@@ -622,6 +645,81 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 ###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
 
 ```{r section_1.5.3, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting OPTICS parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(OPTICS_minPts = ncol(CA.Numeric) + 1)
+
+##################################
+# Inspecting the k-NN distance plot
+##################################
+kNNdistplot(CA.Numeric.Matrix, minPts = OPTICS_minPts)
+abline(h=16, col="red", lty=2)
+OPTICS_eps <- 16
+
+##################################
+# Implementing the OPTICS Algorithm
+##################################
+(CA_OPTICS <- optics(CA.Numeric.Matrix, 
+                    eps = OPTICS_eps, 
+                    minPts = OPTICS_minPts))
+
+##################################
+# Plotting the reachability plot
+##################################
+CA_OPTICS$order
+plot(CA_OPTICS)
+
+##################################
+# Extracting a DBSCAN clustering 
+# by cutting the reachability plot at eps_cl
+CA_OPTICS_DBSCAN <- extractDBSCAN(CA_OPTICS, 
+                                  eps_cl = 16)
+CA_OPTICS_DBSCAN
+
+CA_OPTICS_Summary <- CA
+CA_OPTICS_Summary$OPTICS_Cluster <- ifelse(CA_OPTICS_DBSCAN$cluster==0,
+                                    "Outlier",
+                                    paste0("Cluster ",as.character(CA_OPTICS_DBSCAN$cluster)))
+
+CA_OPTICS_Summary$OPTICS_Cluster<- factor(CA_OPTICS_Summary$OPTICS_Cluster,
+                                          levels=c("Outlier",
+                                                   "Cluster 1",
+                                                   "Cluster 2",
+                                                   "Cluster 3",
+                                                   "Cluster 4"))
+CA_OPTICS_Summary
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by OPTICS clusters
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_OPTICS_Summary$OPTICS_Cluster,
+       data = CA_OPTICS_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (OPTICS)")
+
+splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
+      groups = CA_OPTICS_Summary$OPTICS_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "OPTICS" )
 
 ```
 
@@ -662,7 +760,7 @@ CA_JPCLUST_Summary
 ##################################
 # Creating multivariate plots
 # for the principal components
-# grouped by cancer
+# grouped by JPCLUST clusters
 ##################################
 cloud(PC1 ~ PC2*PC3,
       groups = CA_JPCLUST_Summary$JPCLUST_Cluster,
@@ -727,7 +825,7 @@ CA_SNNCLUST_Summary
 ##################################
 # Creating multivariate plots
 # for the principal components
-# grouped by cancer
+# grouped by SNNCLUST clusters
 ##################################
 cloud(PC1 ~ PC2*PC3,
       groups = CA_SNNCLUST_Summary$SNNCLUST_Cluster,
