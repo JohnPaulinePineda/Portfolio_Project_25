@@ -1163,26 +1163,30 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[Article]** [Cluster Validation Essentials](http://www.sthda.com/english/articles/29-cluster-validation-essentials/96-determiningthe-optimal-number-of-clusters-3-must-know-methods/) by Alboukadel Kassambara
 | **[Article]** [Data Preparation and R Packages for Cluster Analysis](https://www.datanovia.com/en/lessons/data-preparation-and-r-packages-for-cluster-analysis/) by Datanovia Team
 | **[Article]** [The Complete Guide to Clustering Analysis: K-Means and Hierarchical Clustering by Hand and in R](https://statsandr.com/blog/clustering-analysis-k-means-and-hierarchical-clustering-by-hand-and-in-r/#silhouette-method) by Antoine Soetewey
+| **[Article]** [Clustering](https://scikit-learn.org/stable/modules/clustering.html) by Scikit-Learn Team
 | **[Article]** [Practical Guide to Clustering Algorithms & Evaluation in R](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/clustering-algorithms-evaluation-r/tutorial/) by Hacker Earth Team
 | **[Article]** [Measures for Comparing Clustering Algorithms](https://www.datanovia.com/en/lessons/choosing-the-best-clustering-algorithms/#:~:text=Compare%20clustering%20algorithms%20in%20R%20We%E2%80%99ll%20use%20the,%22average%22%29%20obj%3A%20A%20numeric%20matrix%20or%20data%20frame.) by Datanovia Team
-| **[Article]** [K-Means Clustering – Introduction](https://www.geeksforgeeks.org/k-means-clustering-introduction/) by Geeks For Geeks Team
-| **[Article]** [K- Means Clustering Algorithm](https://www.educba.com/k-means-clustering-algorithm/) by Priya Pedamkar
-| **[Article]** [K-Means Clustering Algorithm: Applications, Types, and How Does It Work?](https://www.simplilearn.com/tutorials/machine-learning-tutorial/k-means-clustering-algorithm) by Mayank Banoula
-| **[Article]** [A New Partitioning Around Medoids Algorithm](https://www.stat.ubc.ca/new-partitioning-around-medoids-algorithm) by Mark Van der Laan, Katherine Pollard and Jennifer Bryan
-| **[Article]** [ML | K-Medoids Clustering With Solved Example](https://www.geeksforgeeks.org/ml-k-medoids-clustering-with-example/) by Geeks For Geeks Team
-| **[Article]** [Fuzzy Clustering Essentials](https://www.datanovia.com/en/lessons/fuzzy-clustering-essentials/#:~:text=The%20fuzzy%20clustering%20is%20considered%20as%20soft%20clustering%2C,the%20degree%20of%20being%20in%20a%20given%20cluster.) by Datanovia Team
-| **[Article]** [Types of Clustering](https://www.educba.com/types-of-clustering/) by Priya Pedamkar
-| **[Article]** [What is Fuzzy Clustering?](https://www.statisticshowto.com/fuzzy-clustering/) by Statistics How To Team
-| **[Article]** [ML | Fuzzy Clustering](https://www.geeksforgeeks.org/ml-fuzzy-clustering/) by Geeks For Geeks Team
-| **[Article]** [What is Hierarchical Clustering?](https://www.displayr.com/what-is-hierarchical-clustering/) by Tim Bock
-| **[Article]** [What is Hierarchical Clustering? An Introduction to Hierarchical Clustering](https://www.mygreatlearning.com/blog/hierarchical-clustering/) by Great Learning Team
-| **[Article]** [Difference Between K-Means and Hierarchical Clustering](https://www.geeksforgeeks.org/difference-between-k-means-and-hierarchical-clustering/) by Geeks For Geeks Team
-| **[Article]** [What is Hierarchical Clustering and How Does It Work](https://www.simplilearn.com/tutorials/data-science-tutorial/hierarchical-clustering-in-r) by Simplilearn Team
-| **[Article]** [Hierarchical Clustering Explained with Python Example](https://vitalflux.com/hierarchical-clustering-explained-with-python-example/) by Ajitesh Kumar
-| **[Article]** [Agglomerative Hierarchical Clustering](https://www.datanovia.com/en/lessons/agglomerative-hierarchical-clustering/#:~:text=The%20agglomerative%20clustering%20is%20the%20most%20common%20type,by%20treating%20each%20object%20as%20a%20singleton%20cluster.) by Datanovia Team
-| **[Article]** [Divisive Hierarchical Clustering](https://www.datanovia.com/en/lessons/divisive-hierarchical-clustering/) by Datanovia Team
-| **[Article]** [ML | Hierarchical clustering (Agglomerative and Divisive clustering)](https://www.geeksforgeeks.org/ml-hierarchical-clustering-agglomerative-and-divisive-clustering/) by Geeks For Geeks Team
+| **[Article]** [DBSCAN Algorithm | How Does It Work?](https://www.mygreatlearning.com/blog/dbscan-algorithm/) by Pavan Kumar Raja
+| **[Article]** [DBSCAN Clustering in ML | Density Based Clustering](https://www.geeksforgeeks.org/dbscan-clustering-in-ml-density-based-clustering/) by Geeks For Geeks Team
+| **[Article]** [Density-Based Spatial Clustering of Applications with Noise (DBSCAN)](https://ml-explained.com/blog/dbscan-explained) by Machine Learning Explained Team
+| **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
+| **[Article]** [Demo of OPTICS Clustering Algorithm](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html) by Scikit-Learn Team
+| **[Article]** [ML | OPTICS Clustering Explanation](https://www.geeksforgeeks.org/ml-optics-clustering-explanation/) by Geeks For Geeks Team
+| **[Article]** [Comparing Different Clustering Algorithms on Toy Datasets](xxx) by Scikit-Learn Team
+| **[Article]** [How HDBSCAN Works](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) by HDBSCAN Team
+| **[Article]** [Understanding HDBSCAN and Density-Based Clustering](https://pberba.github.io/stats/2020/01/17/hdbscan/) by Pepe Berba
+| **[Article]** [SNN Clustering](http://mlwiki.org/index.php/SNN_Clustering) by Alexey Grigorev
+| **[Article]** [Basic Understanding of Jarvis-Patrick Clustering Algorithm](https://www.geeksforgeeks.org/basic-understanding-of-jarvis-patrick-clustering-algorithm/) by Geeks For Geeks Team
+| **[Article]** [Jarvis-Patrick Clustering](https://docs.chemaxon.com/display/docs/jarvis-patrick-clustering.md) by Chemaxon Team
+| **[Article]** [Which Are The Best Clustering Metrics? (Explained Simply)](https://stephenallwright.com/good-clustering-metrics/) by Stephen Allwright
+| **[Article]** [Elbow Method vs Silhouette Score – Which is Better?](https://vitalflux.com/elbow-method-silhouette-score-which-better/) by Ajitesh Kumar
+| **[Article]** [Assessment Metrics for Clustering Algorithms](https://opendatascience.com/assessment-metrics-clustering-algorithms/) by Spencer Norris
+| **[Article]** [Clustering Performance Evaluation in Scikit Learn](https://www.geeksforgeeks.org/clustering-performance-evaluation-in-scikit-learn/) by Geeks For Geeks Team
+| **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
+| **[Publication]** [Finding Clusters of Different Sizes, Shapes, and Densities in Noisy, High Dimensional Data](https://epubs.siam.org/doi/10.1137/1.9781611972733.5) by Levent Ertöz, Michael Steinbach, and Vipin Kumar (Proceedings of the 2003 SIAM International Conference on Data Mining)
 | **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
+
+
 |
 |
 |
