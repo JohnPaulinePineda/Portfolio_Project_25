@@ -538,6 +538,8 @@ CA_DBSCAN_Summary$DBSCAN_Cluster <- factor(CA_DBSCAN_Summary$DBSCAN_Cluster,
                                                     "Cluster 4"))
 CA_DBSCAN_Summary
 
+table(CA_DBSCAN_Summary$Cancer,CA_DBSCAN_Summary$DBSCAN_Cluster)
+
 ##################################
 # Computing the DBSCAN
 # outlier detection rate
@@ -626,6 +628,8 @@ CA_HDBSCAN_Summary$HDBSCAN_Cluster <- factor(CA_HDBSCAN_Summary$HDBSCAN_Cluster,
                                                       "Cluster 1", 
                                                       "Cluster 2"))
 CA_HDBSCAN_Summary
+
+table(CA_HDBSCAN_Summary$Cancer,CA_HDBSCAN_Summary$HDBSCAN_Cluster)
 
 ##################################
 # Computing the HDBSCAN
@@ -738,6 +742,8 @@ CA_OPTICS_Summary$OPTICS_Cluster<- factor(CA_OPTICS_Summary$OPTICS_Cluster,
                                                    "Cluster 4"))
 CA_OPTICS_Summary
 
+table(CA_OPTICS_Summary$Cancer,CA_OPTICS_Summary$OPTICS_Cluster)
+
 ##################################
 # Computing the OPTICS
 # outlier detection rate
@@ -827,6 +833,8 @@ CA_JPCLUST_Summary$JPCLUST_Cluster <- factor(CA_JPCLUST_Summary$JPCLUST_Cluster,
                                                       "Cluster 3", 
                                                       "Cluster 4"))
 CA_JPCLUST_Summary
+
+table(CA_JPCLUST_Summary$Cancer,CA_JPCLUST_Summary$JPCLUST_Cluster)
 
 ##################################
 # Computing the JPCLUST
@@ -922,6 +930,8 @@ CA_SNNCLUST_Summary$SNNCLUST_Cluster <- factor(CA_SNNCLUST_Summary$SNNCLUST_Clus
                                                       "Cluster 3", 
                                                       "Cluster 4"))
 CA_SNNCLUST_Summary
+
+table(CA_SNNCLUST_Summary$Cancer,CA_SNNCLUST_Summary$SNNCLUST_Cluster)
 
 ##################################
 # Computing the SNNCLUST
