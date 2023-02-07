@@ -1292,6 +1292,8 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[R Package]** [factoextra](https://cran.r-project.org/web/packages/factoextra/factoextra.pdf) by Alboukadel Kassambara
 | **[R Package]** [NbClust](https://cran.r-project.org/web/packages/NbClust/NbClust.pdf) by Malika Charrad, Nadia Ghazzali, Veronique Boiteau and Azam Niknafs
 | **[R Package]** [cluster](https://cran.r-project.org/web/packages/cluster/cluster.pdf) by Martin Maechler
+| **[R Package]** [dbscan](https://cran.r-project.org/web/packages/dbscan/dbscan.pdf) by Michael Hahsler
+| **[R Package]** [fossil](https://cran.r-project.org/web/packages/fossil/fossil.pdf) by Matthew Vavrek
 | **[Article]** [Cluster Analysis in R Simplified and Enhanced](https://www.datanovia.com/en/blog/cluster-analysis-in-r-simplified-and-enhanced/) by Datanovia Team
 | **[Article]** [Cluster Validation Essentials](http://www.sthda.com/english/articles/29-cluster-validation-essentials/96-determiningthe-optimal-number-of-clusters-3-must-know-methods/) by Alboukadel Kassambara
 | **[Article]** [Data Preparation and R Packages for Cluster Analysis](https://www.datanovia.com/en/lessons/data-preparation-and-r-packages-for-cluster-analysis/) by Datanovia Team
