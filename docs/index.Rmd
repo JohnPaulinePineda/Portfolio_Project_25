@@ -1058,12 +1058,64 @@ CA_SNNCLUST_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
 # Consolidating all algorithm performance results
 ####################################################################
 grid.arrange(CA_PCABASE_ClusterPlot,
+             CA_SNNCLUST_ClusterPlot,
              CA_DBSCAN_ClusterPlot,
-             CA_HDBSCAN_ClusterPlot,
              CA_OPTICS_ClusterPlot,
              CA_JPCLUST_ClusterPlot,
-             CA_SNNCLUST_ClusterPlot,
+             CA_HDBSCAN_ClusterPlot,
              ncol=3)
+
+##################################
+# Consolidating all 
+# outlier detection rates and rand indices
+# for the analysis data
+##################################
+ClusteringAlgorithm <- c('DBSCAN','HDBSCAN','OPTICS','JPCLUST','SNNCLUST',
+                         'DBSCAN','HDBSCAN','OPTICS','JPCLUST','SNNCLUST')
+
+Set <- c(rep('Outlier Detection Rate',5),
+         rep('Rand Index',5))
+
+ClusteringMetrics <- c(CA_DBSCAN_OutlierDetectionRate,
+                       CA_HDBSCAN_OutlierDetectionRate,
+                       CA_OPTICS_OutlierDetectionRate,
+                       CA_JPCLUST_OutlierDetectionRate,
+                       CA_SNNCLUST_OutlierDetectionRate,
+                       CA_DBSCAN_RandIndex,
+                       CA_HDBSCAN_RandIndex,
+                       CA_OPTICS_RandIndex,
+                       CA_JPCLUST_RandIndex,
+                       CA_SNNCLUST_RandIndex)
+
+ClusteringPeformance_Summary <- as.data.frame(cbind(ClusteringAlgorithm,
+                                                    Set,
+                                                    ClusteringMetrics))
+
+ClusteringPeformance_Summary$ClusteringMetrics <- as.numeric(as.character(ClusteringPeformance_Summary$ClusteringMetrics))
+ClusteringPeformance_Summary$Set <- factor(ClusteringPeformance_Summary$Set,
+                                           levels = c("Outlier Detection Rate",
+                                                      "Rand Index"))
+ClusteringPeformance_Summary$ClusteringAlgorithm <- factor(ClusteringPeformance_Summary$ClusteringAlgorithm,
+                                                      levels = c('DBSCAN',
+                                                                 'HDBSCAN',
+                                                                 'OPTICS',
+                                                                 'JPCLUST',
+                                                                 'SNNCLUST'))
+
+print(ClusteringPeformance_Summary, row.names=FALSE)
+
+(ClusteringPeformance_Summary_Plot <- dotplot(ClusteringAlgorithm ~ ClusteringMetrics,
+                          data = ClusteringPeformance_Summary,
+                          groups = Set,
+                          main = "Clustering Algorithm Performance Comparison",
+                          ylab = "Algorithm",
+                          xlab = "Clustering Performance Metrics",
+                          auto.key = list(adj = 1),
+                          type=c("p", "h"),
+                          origin = 0,
+                          alpha = 0.45,
+                          pch = 16,
+                          cex = 2))
 
 ```
 
