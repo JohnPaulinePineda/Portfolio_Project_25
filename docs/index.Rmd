@@ -638,7 +638,6 @@ CA_HDBSCAN_Evaluation
 (CA_HDBSCAN_RandIndex <- rand.index(CA_HDBSCAN_Evaluation$CancerGroups,
                                   CA_HDBSCAN_Evaluation$HDBSCAN_ClusterGroups))
 
-
 ##################################
 # Creating multivariate plots
 # for the principal components
@@ -719,6 +718,28 @@ CA_OPTICS_Summary$OPTICS_Cluster<- factor(CA_OPTICS_Summary$OPTICS_Cluster,
                                                    "Cluster 3",
                                                    "Cluster 4"))
 CA_OPTICS_Summary
+
+##################################
+# Compare similarity of results
+# between the cancer groups
+# and the formulated OPTICS clusters
+# ignoring the identified outliers
+##################################
+CA_OPTICS_Evaluation <- CA_OPTICS_Summary[CA_OPTICS_Summary$OPTICS_Cluster!="Outlier",]
+CA_OPTICS_Evaluation$Cancer <- factor(CA_OPTICS_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_OPTICS_Evaluation$CancerGroups <- as.numeric(CA_OPTICS_Evaluation$Cancer)
+CA_OPTICS_Evaluation$OPTICS_ClusterGroups <- as.numeric(CA_OPTICS_Evaluation$OPTICS_Cluster)
+
+CA_OPTICS_Evaluation
+
+(CA_OPTICS_RandIndex <- rand.index(CA_OPTICS_Evaluation$CancerGroups,
+                                  CA_OPTICS_Evaluation$OPTICS_ClusterGroups))
 
 ##################################
 # Creating multivariate plots
