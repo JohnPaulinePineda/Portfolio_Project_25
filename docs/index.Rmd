@@ -429,6 +429,8 @@ DR_PCA$x <- as.data.frame(DR_PCA$x)
 ##################################
 EDA <- as.data.frame(DR_PCA_SUBSET)
 
+EDA$Algorithm <- rep("PCA-BASE",nrow(EDA))
+
 ##################################
 # Creating a function to define the
 # range of descriptors for plotting
@@ -523,6 +525,7 @@ DBSCAN_eps <- 16
                     minPts = DBSCAN_minPts))
 
 CA_DBSCAN_Summary <- CA
+CA_DBSCAN_Summary$Algorithm <- rep("DBSCAN",nrow(CA_DBSCAN_Summary))
 CA_DBSCAN_Summary$DBSCAN_Cluster <- ifelse(CA_DBSCAN$cluster==0,
                                            "Outlier",
                                            paste0("Cluster ",as.character(CA_DBSCAN$cluster)))
@@ -536,7 +539,8 @@ CA_DBSCAN_Summary$DBSCAN_Cluster <- factor(CA_DBSCAN_Summary$DBSCAN_Cluster,
 CA_DBSCAN_Summary
 
 ##################################
-# Computing the outlier detection rate
+# Computing the DBSCAN
+# outlier detection rate
 ##################################
 (CA_DBSCAN_OutlierDetectionRate <- nrow(CA_DBSCAN_Summary[CA_DBSCAN_Summary$DBSCAN_Cluster=="Outlier",])/
   nrow(CA_DBSCAN_Summary))
@@ -568,7 +572,7 @@ CA_DBSCAN_Evaluation
 # for the principal components
 # grouped by DBSCAN clusters
 ##################################
-cloud(PC1 ~ PC2*PC3,
+cloud(PC1 ~ PC2*PC3 | Algorithm,
       groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
        data = CA_DBSCAN_Summary,
        type = "p",
@@ -612,6 +616,7 @@ CA.Numeric.Matrix <- as.matrix(CA.Numeric)
 plot(CA_HDBSCAN, show_flat=TRUE)
 
 CA_HDBSCAN_Summary <- CA
+CA_HDBSCAN_Summary$Algorithm <- rep("HDBSCAN",nrow(CA_HDBSCAN_Summary))
 CA_HDBSCAN_Summary$HDBSCAN_Cluster <- ifelse(CA_HDBSCAN$cluster==0,
                                              "Outlier",
                                              paste0("Cluster ",as.character(CA_HDBSCAN$cluster)))
@@ -621,6 +626,13 @@ CA_HDBSCAN_Summary$HDBSCAN_Cluster <- factor(CA_HDBSCAN_Summary$HDBSCAN_Cluster,
                                                       "Cluster 1", 
                                                       "Cluster 2"))
 CA_HDBSCAN_Summary
+
+##################################
+# Computing the HDBSCAN
+# outlier detection rate
+##################################
+(CA_HDBSCAN_OutlierDetectionRate <- nrow(CA_HDBSCAN_Summary[CA_HDBSCAN_Summary$HDBSCAN_Cluster=="Outlier",])/
+  nrow(CA_HDBSCAN_Summary))
 
 ##################################
 # Comparing the similarity of results
@@ -713,6 +725,7 @@ CA_OPTICS_DBSCAN <- extractDBSCAN(CA_OPTICS,
 CA_OPTICS_DBSCAN
 
 CA_OPTICS_Summary <- CA
+CA_OPTICS_Summary$Algorithm <- rep("OPTICS",nrow(CA_OPTICS_Summary))
 CA_OPTICS_Summary$OPTICS_Cluster <- ifelse(CA_OPTICS_DBSCAN$cluster==0,
                                     "Outlier",
                                     paste0("Cluster ",as.character(CA_OPTICS_DBSCAN$cluster)))
@@ -724,6 +737,13 @@ CA_OPTICS_Summary$OPTICS_Cluster<- factor(CA_OPTICS_Summary$OPTICS_Cluster,
                                                    "Cluster 3",
                                                    "Cluster 4"))
 CA_OPTICS_Summary
+
+##################################
+# Computing the OPTICS
+# outlier detection rate
+##################################
+(CA_OPTICS_OutlierDetectionRate <- nrow(CA_OPTICS_Summary[CA_OPTICS_Summary$OPTICS_Cluster=="Outlier",])/
+  nrow(CA_OPTICS_Summary))
 
 ##################################
 # Comparing the similarity of results
@@ -798,6 +818,7 @@ CA.Numeric.Matrix <- as.matrix(CA.Numeric)
 table(CA_JPCLUST$cluster)
 
 CA_JPCLUST_Summary <- CA
+CA_JPCLUST_Summary$Algorithm <- rep("JPCLUST",nrow(CA_JPCLUST_Summary))
 CA_JPCLUST_Summary$JPCLUST_Cluster <- paste0("Cluster ",as.character(CA_JPCLUST$cluster))
 
 CA_JPCLUST_Summary$JPCLUST_Cluster <- factor(CA_JPCLUST_Summary$JPCLUST_Cluster,
@@ -806,6 +827,13 @@ CA_JPCLUST_Summary$JPCLUST_Cluster <- factor(CA_JPCLUST_Summary$JPCLUST_Cluster,
                                                       "Cluster 3", 
                                                       "Cluster 4"))
 CA_JPCLUST_Summary
+
+##################################
+# Computing the JPCLUST
+# outlier detection rate
+##################################
+(CA_JPCLUST_OutlierDetectionRate <- nrow(CA_JPCLUST_Summary[CA_JPCLUST_Summary$JPCLUST_Cluster=="Cluster 1",])/
+  nrow(CA_JPCLUST_Summary))
 
 ##################################
 # Comparing the similarity of results
@@ -882,6 +910,7 @@ SNNCLUST_eps <- 5
 table(CA_SNNCLUST$cluster)
 
 CA_SNNCLUST_Summary <- CA
+CA_SNNCLUST_Summary$Algorithm <- rep("SNNCLUST",nrow(CA_SNNCLUST_Summary))
 CA_SNNCLUST_Summary$SNNCLUST_Cluster <- ifelse(CA_SNNCLUST$cluster==0,
                                              "Outlier",
                                              paste0("Cluster ",as.character(CA_SNNCLUST$cluster)))
@@ -893,6 +922,13 @@ CA_SNNCLUST_Summary$SNNCLUST_Cluster <- factor(CA_SNNCLUST_Summary$SNNCLUST_Clus
                                                       "Cluster 3", 
                                                       "Cluster 4"))
 CA_SNNCLUST_Summary
+
+##################################
+# Computing the SNNCLUST
+# outlier detection rate
+##################################
+(CA_SNNCLUST_OutlierDetectionRate <- nrow(CA_SNNCLUST_Summary[CA_SNNCLUST_Summary$SNNCLUST_Cluster=="Outlier",])/
+  nrow(CA_SNNCLUST_Summary))
 
 ##################################
 # Comparing the similarity of results
@@ -945,6 +981,80 @@ splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
 ##  1.6 Algorithm Comparison Summary
 
 ```{r section_1.5.6, warning=FALSE, message=FALSE}
+
+##################################
+# Replotting the cluster plots for PCA-BASE
+##################################
+cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = EDA$Cancer,
+       data = EDA,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for DBSCAN
+##################################
+CA_DBSCAN_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
+       data = CA_DBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for HDBSCAN
+##################################
+CA_HDBSCAN_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+       data = CA_HDBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for OPTICS
+##################################
+CA_OPTICS_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_OPTICS_Summary$OPTICS_Cluster,
+       data = CA_OPTICS_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for JPCLUST
+##################################
+CA_JPCLUST_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_JPCLUST_Summary$JPCLUST_Cluster,
+       data = CA_JPCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for SNNCLUST
+##################################
+CA_SNNCLUST_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+       data = CA_SNNCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+
 
 ```
 
