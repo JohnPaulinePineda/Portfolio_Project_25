@@ -540,7 +540,7 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 |
 | **[B]** The algorithm contains 2 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">eps</span> = size (radius) of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
-|      **[B.2]** <span style="color: #FF0000">minPts</span> = number of minimum points required in the eps neighborhood for core points (including the point itself) held constant at a value of 4 determined from the number of component descriptors plus one.
+|      **[B.2]** <span style="color: #FF0000">minPts</span> = number of minimum points required in the eps neighborhood for core points (including the point itself) held constant at a value of 4 determined from the number of component descriptors increased by one.
 |
 | **[C]** The algorithm identified 4 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
 |
@@ -550,7 +550,7 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 |
 | **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
 |
-| **[F]** The formulated clusters were sufficiently informative for points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span>. The formulated clusters were, however, vague for points identified under <span style="color: #FF0000">labs=NSCLC</span>.
+| **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
 |
 ```{r section_1.5.1, warning=FALSE, message=FALSE}
 ##################################
@@ -651,7 +651,22 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 ```
 
 ###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
-
+|
+| **[A]** The HDBSCAN algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+|
+| **[B]** The algorithm contains 1 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">minPts</span> = minimum size of clusters held constant at a value of 6 determined from the number of component descriptors multiplied by two.
+|
+| **[C]** The algorithm identified 2 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.10000
+|      **[D.2]** Rand Index = 0.52698
+|
+| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+|
+| **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
+|
 ```{r section_1.5.2, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
