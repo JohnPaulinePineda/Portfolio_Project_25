@@ -887,7 +887,23 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 ```
 
 ###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
-
+|
+| **[A]** The JPCLUST algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+|
+| **[B]** The algorithm contains 2 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification held constant at a value of 6 determined from the number of component descriptors multiplied by two.
+|      **[B.2]** <span style="color: #FF0000">kt</span> = threshold on the number of shared nearest neighbors (including the points themselves) to form cluster held constant at a value of 3 determined from the <span style="color: #FF0000">k</span> parameter divided by two.
+|
+| **[C]** The algorithm identified 4 informative clusters containing a subset of points. However, the cluster containing the least points was assigned as the outlier group. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.05000
+|      **[D.2]** Rand Index = 0.59886
+|
+| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=RENAL</span>. 
+|
+| **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
+|
 ```{r section_1.5.4, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
