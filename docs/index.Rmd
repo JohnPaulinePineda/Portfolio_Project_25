@@ -548,11 +548,9 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 |      **[D.1]** Outlier Detection Rate = 0.32500
 |      **[D.2]** Rand Index = 0.83190
 |
-| **[D]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
 |
-| **[E]** The formulated clusters were sufficiently informative for points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span>. 
-|
-| **[F]** The formulated clusters were vague for points identified under <span style="color: #FF0000">labs=NSCLC</span>.
+| **[F]** The formulated clusters were sufficiently informative for points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span>. The formulated clusters were, however, vague for points identified under <span style="color: #FF0000">labs=NSCLC</span>.
 |
 ```{r section_1.5.1, warning=FALSE, message=FALSE}
 ##################################
