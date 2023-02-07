@@ -985,7 +985,7 @@ splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
 ##################################
 # Replotting the cluster plots for PCA-BASE
 ##################################
-cloud(PC1 ~ PC2*PC3 | Algorithm,
+CA_PCABASE_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
       groups = EDA$Cancer,
        data = EDA,
        type = "p",
@@ -1054,7 +1054,16 @@ CA_SNNCLUST_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
        alpha = 0.45,
        auto.key = list(points = TRUE, space = "top"))
 
-
+####################################################################
+# Consolidating all algorithm performance results
+####################################################################
+grid.arrange(CA_PCABASE_ClusterPlot,
+             CA_DBSCAN_ClusterPlot,
+             CA_HDBSCAN_ClusterPlot,
+             CA_OPTICS_ClusterPlot,
+             CA_JPCLUST_ClusterPlot,
+             CA_SNNCLUST_ClusterPlot,
+             ncol=3)
 
 ```
 
