@@ -536,7 +536,13 @@ CA_DBSCAN_Summary$DBSCAN_Cluster <- factor(CA_DBSCAN_Summary$DBSCAN_Cluster,
 CA_DBSCAN_Summary
 
 ##################################
-# Compare similarity of results
+# Computing the outlier detection rate
+##################################
+(CA_DBSCAN_OutlierDetectionRate <- nrow(CA_DBSCAN_Summary[CA_DBSCAN_Summary$DBSCAN_Cluster=="Outlier",])/
+  nrow(CA_DBSCAN_Summary))
+
+##################################
+# Comparing the similarity of results
 # between the cancer groups
 # and the formulated DBSCAN clusters
 # ignoring the identified outliers
@@ -617,7 +623,7 @@ CA_HDBSCAN_Summary$HDBSCAN_Cluster <- factor(CA_HDBSCAN_Summary$HDBSCAN_Cluster,
 CA_HDBSCAN_Summary
 
 ##################################
-# Compare similarity of results
+# Comparing the similarity of results
 # between the cancer groups
 # and the formulated HDBSCAN clusters
 # ignoring the identified outliers
@@ -720,7 +726,7 @@ CA_OPTICS_Summary$OPTICS_Cluster<- factor(CA_OPTICS_Summary$OPTICS_Cluster,
 CA_OPTICS_Summary
 
 ##################################
-# Compare similarity of results
+# Comparing the similarity of results
 # between the cancer groups
 # and the formulated OPTICS clusters
 # ignoring the identified outliers
@@ -802,7 +808,7 @@ CA_JPCLUST_Summary$JPCLUST_Cluster <- factor(CA_JPCLUST_Summary$JPCLUST_Cluster,
 CA_JPCLUST_Summary
 
 ##################################
-# Compare similarity of results
+# Comparing the similarity of results
 # between the cancer groups
 # and the formulated JPCLUST clusters
 # ignoring the identified outliers (Cluster 1)
@@ -889,7 +895,7 @@ CA_SNNCLUST_Summary$SNNCLUST_Cluster <- factor(CA_SNNCLUST_Summary$SNNCLUST_Clus
 CA_SNNCLUST_Summary
 
 ##################################
-# Compare similarity of results
+# Comparing the similarity of results
 # between the cancer groups
 # and the formulated SNNCLUST clusters
 # ignoring the identified outliers
