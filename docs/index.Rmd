@@ -536,7 +536,7 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 
 ###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 |
-| **[A]** The DBSCAN algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+| **[A]** The DBSCAN algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">eps</span> = size (radius) of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
@@ -652,7 +652,7 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 
 ###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
 |
-| **[A]** The HDBSCAN algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+| **[A]** The HDBSCAN algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 1 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">minPts</span> = minimum size of clusters held constant at a value of 6 determined from the number of component descriptors multiplied by two.
@@ -758,7 +758,7 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 
 ###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
 |
-| **[A]** The OPTICS algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+| **[A]** The OPTICS algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">eps</span> = upper limit of the size of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
@@ -888,7 +888,7 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 
 ###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
 |
-| **[A]** The JPCLUST algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+| **[A]** The JPCLUST algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification held constant at a value of 6 determined from the number of component descriptors multiplied by two.
@@ -996,7 +996,7 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 
 ###  1.5.5 Shared Nearest Neighbor Clusterings (SNNCLUST)
 |
-| **[A]** The SNNCLUST algorithm was implemented only for the principal component descriptors using the <span style="color: #FF0000">dbscan</span> package.  
+| **[A]** The SNNCLUST algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 3 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification to create the shared nearest neighbor graph held constant at a value of 6 determined from the number of component descriptors multiplied by two.
