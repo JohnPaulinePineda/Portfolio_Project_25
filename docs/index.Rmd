@@ -536,7 +536,7 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 
 ###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 |
-| **[A]** The DBSCAN algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+| **[A]** The DBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">eps</span> = size (radius) of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
@@ -548,7 +548,7 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 |      **[D.1]** Outlier Detection Rate = 0.32500
 |      **[D.2]** Rand Index = 0.83190
 |
-| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
 |
 | **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
 |
@@ -652,7 +652,7 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 
 ###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
 |
-| **[A]** The HDBSCAN algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+| **[A]** The HDBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 1 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">minPts</span> = minimum size of clusters held constant at a value of 6 determined from the number of component descriptors multiplied by two.
@@ -663,7 +663,7 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 |      **[D.1]** Outlier Detection Rate = 0.10000
 |      **[D.2]** Rand Index = 0.52698
 |
-| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
 |
 | **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
 |
@@ -758,7 +758,7 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 
 ###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
 |
-| **[A]** The OPTICS algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+| **[A]** The OPTICS algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">eps</span> = upper limit of the size of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
@@ -770,7 +770,7 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 |      **[D.1]** Outlier Detection Rate = 0.37500
 |      **[D.2]** Rand Index = 0.82667
 |
-| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
 |
 | **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
 |
@@ -888,7 +888,7 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 
 ###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
 |
-| **[A]** The JPCLUST algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+| **[A]** The JPCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification held constant at a value of 6 determined from the number of component descriptors multiplied by two.
@@ -900,7 +900,7 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 |      **[D.1]** Outlier Detection Rate = 0.05000
 |      **[D.2]** Rand Index = 0.59886
 |
-| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=RENAL</span>. 
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=RENAL</span>. 
 |
 | **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
 |
@@ -996,7 +996,7 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 
 ###  1.5.5 Shared Nearest Neighbor Clusterings (SNNCLUST)
 |
-| **[A]** The SNNCLUST algorithm was implemented only for the principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+| **[A]** The SNNCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 3 hyperparameters:
 |      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification to create the shared nearest neighbor graph held constant at a value of 6 determined from the number of component descriptors multiplied by two.
@@ -1009,7 +1009,7 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 |      **[D.1]** Outlier Detection Rate = 0.40000
 |      **[D.2]** Rand Index = 0.93115
 |
-| **[E]** The proportion of identified outliers were reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=NSCLC</span>. 
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=NSCLC</span>. 
 |
 | **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span>, <span style="color: #FF0000">labs=RENAL</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative.
 |
