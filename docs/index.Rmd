@@ -1262,7 +1262,7 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 
 ```
 
-##  1.7 References
+# **2. References**
 |
 | **[Book]** [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson
 | **[Book]** [An Introduction to Statistical Learning](https://www.statlearning.com/) by Gareth James, Daniela Witten, Trevor Hastie and Rob Tibshirani
@@ -1320,8 +1320,6 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
 | **[Publication]** [Finding Clusters of Different Sizes, Shapes, and Densities in Noisy, High Dimensional Data](https://epubs.siam.org/doi/10.1137/1.9781611972733.5) by Levent Ertöz, Michael Steinbach, and Vipin Kumar (Proceedings of the 2003 SIAM International Conference on Data Mining)
 | **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
-
-
 |
 |
 |
