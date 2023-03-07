@@ -896,7 +896,7 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 
 ###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
 |
-| [JPCLUST](https://ieeexplore.ieee.org/document/1672233) builds a shared nearest neighbor graph with a user-defined neighborhood size for nearest neighbor sparsification. Any two points are assigned into the same cluster if these are in each other’s nearest neighbor list and share at least user-defined threshold for the number of shared nearest neighbors.
+| [JPCLUST](https://ieeexplore.ieee.org/document/1672233) builds a shared nearest neighbor graph with a user-defined neighborhood size for nearest neighbor sparsification. Any two points are assigned into the same cluster if these are in each other’s nearest neighbor list and share at least a user-defined number threshold of shared nearest neighbors.
 |
 | **[A]** The JPCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
