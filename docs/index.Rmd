@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 |
 | This document implements density-based clustering algorithms for identifying multivariate outliers using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>.    
 |
-| Density-based clustering is a form of unsupervised learning aimed at identifying distinctive groups in the data based on a local cluster criterion made up of density-connected points. The algorithms applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**dbscan**</mark> package) attempt to determine potential clusters in a data space composed of a contiguous region of high point density separated from other clusters by contiguous regions of low point density which are typically considered as noise or outliers.
+| Density-based clustering is a form of unsupervised learning method aimed at identifying distinctive groups in the data based on a local cluster criterion made up of density-connected points. The algorithms applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**dbscan**</mark> package) attempt to determine potential clusters in a data space composed of a contiguous region of high point density separated from other clusters by contiguous regions of low point density which are typically considered as noise or outliers.
 |
 ##  1.1 Sample Data
 |
@@ -655,6 +655,8 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 ```
 
 ###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
+|
+| [HDBSCAN](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14) computes the hierarchical cluster tree representing density estimates along with stability-based flat cluster extraction. Mutual reachability distance values between points are determined and applied as a distance measure to construct a minimum spanning tree. The formulated tree is pruned using a stability-based extraction method to find optimal cuts in the hierarcy representing the resulting clusters.
 |
 | **[A]** The HDBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
