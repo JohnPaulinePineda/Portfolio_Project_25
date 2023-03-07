@@ -538,6 +538,8 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 
 ###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 |
+| [DBSCAN](https://dl.acm.org/doi/10.5555/3001460.3001507) estimates the density around each data point by counting the number of points in a user-specified epsilon-neighborhood and applies a user-specified minimum points threshold to identify core, border and noise points. Core points are joined into a cluster when they are density-reachable, otherwise they are treated as separate clusters. Border points are assigned to the same cluster their adjacent core points belong to. All points identified as neither a core or border point are treated as noise.
+|
 | **[A]** The DBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
