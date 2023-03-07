@@ -18,6 +18,8 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 |
 | This document implements density-based clustering algorithms for identifying multivariate outliers using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>.    
 |
+| Density-based clustering is a form of unsupervised learning aimed at identifying distinctive groups in the data based on a local cluster criterion made up of density-connected points. The algorithms applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**dbscan**</mark> package) attempt to determine potential clusters in a data space composed of a contiguous region of high point density separated from other clusters by contiguous regions of low point density which are typically considered as noise or outliers.
+|
 ##  1.1 Sample Data
 |
 | The <mark style="background-color: #EEEEEE;color: #FF0000">**NCI6**</mark>  dataset from the  <mark style="background-color: #CCECFF">**ISLR**</mark> package was used for this illustrated example. Only a subset of observations representing major cancer types was used for the analysis.
@@ -1305,8 +1307,7 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[Article]** [DBSCAN Clustering in ML | Density Based Clustering](https://www.geeksforgeeks.org/dbscan-clustering-in-ml-density-based-clustering/) by Geeks For Geeks Team
 | **[Article]** [Density-Based Spatial Clustering of Applications with Noise (DBSCAN)](https://ml-explained.com/blog/dbscan-explained) by Machine Learning Explained Team
 | **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
-| **[Article]** [Density-Based Clustering - DBSCAN, OPTICS and DENCLUE](https://www.datamining365.com/2020/04/density-based-clustering-dbscan.html) by Data Mining 365 Team 
-| **[Article]** [Demo of OPTICS Clustering Algorithm](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html) by Scikit-Learn Team
+| **[Article]** [Density-Based Clustering - DBSCAN, OPTICS and DENCLUE](https://www.datamining365.com/2020/04/density-based-clustering-dbscan.html) by Data Mining 365 Team | **[Article]** [Demo of OPTICS Clustering Algorithm](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html) by Scikit-Learn Team
 | **[Article]** [ML | OPTICS Clustering Explanation](https://www.geeksforgeeks.org/ml-optics-clustering-explanation/) by Geeks For Geeks Team
 | **[Article]** [Comparing Different Clustering Algorithms on Toy Datasets](xxx) by Scikit-Learn Team
 | **[Article]** [How HDBSCAN Works](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) by HDBSCAN Team
