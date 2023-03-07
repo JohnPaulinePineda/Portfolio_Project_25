@@ -764,6 +764,8 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 
 ###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
 |
+| [OPTICS](OPTICS: Ordering Points To Identify the Clustering Structure) extracts the clustering structure of a dataset by identifying the density-connected points, and builds a density-based representation of the data by creating an ordered list of points in the form of a reachability plot. Points which are spatially closest become neighbors in the ordering and are grouped together into the same cluster due to similarity in their reachability distances.
+|
 | **[A]** The OPTICS algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
 | **[B]** The algorithm contains 2 hyperparameters:
