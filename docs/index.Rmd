@@ -1305,6 +1305,7 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[Article]** [DBSCAN Clustering in ML | Density Based Clustering](https://www.geeksforgeeks.org/dbscan-clustering-in-ml-density-based-clustering/) by Geeks For Geeks Team
 | **[Article]** [Density-Based Spatial Clustering of Applications with Noise (DBSCAN)](https://ml-explained.com/blog/dbscan-explained) by Machine Learning Explained Team
 | **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
+| **[Article]** [Density-Based Clustering - DBSCAN, OPTICS and DENCLUE](https://www.datamining365.com/2020/04/density-based-clustering-dbscan.html) by Data Mining 365 Team 
 | **[Article]** [Demo of OPTICS Clustering Algorithm](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html) by Scikit-Learn Team
 | **[Article]** [ML | OPTICS Clustering Explanation](https://www.geeksforgeeks.org/ml-optics-clustering-explanation/) by Geeks For Geeks Team
 | **[Article]** [Comparing Different Clustering Algorithms on Toy Datasets](xxx) by Scikit-Learn Team
@@ -1318,6 +1319,10 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[Article]** [Assessment Metrics for Clustering Algorithms](https://opendatascience.com/assessment-metrics-clustering-algorithms/) by Spencer Norris
 | **[Article]** [Clustering Performance Evaluation in Scikit Learn](https://www.geeksforgeeks.org/clustering-performance-evaluation-in-scikit-learn/) by Geeks For Geeks Team
 | **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
+| **[Publication]** [A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise](https://dl.acm.org/doi/10.5555/3001460.3001507) by Martin Ester, Hans-Peter Kriegel, Joerg Sander and Xiaowei Xu (Proceedings of 2nd International Conference on Knowledge Discovery and Data Mining)
+| **[Publication]** [Density-Based Clustering Based on Hierarchical Density Estimates](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14) by Ricardo Campello, Davoud Moulavi and Joerg Sander (Proceedings of the 17th Pacific-Asia Conference on Knowledge Discovery in Databases)
+| **[Publication]** [OPTICS: Ordering Points To Identify the Clustering Structure](https://dl.acm.org/doi/10.1145/304181.304187) by Mihael Ankerst, Markus Breunig, Hans-Peter Kriegel and Joerg Sander (ACM SIGMOD International Conference on Management of Data)
+| **[Publication]** [Clustering Using a Similarity Measure Based on Shared Near Neighbors](https://ieeexplore.ieee.org/document/1672233) by Ray Jarvis and Edgar Patrick (IEEE Transactions on Computers)
 | **[Publication]** [Finding Clusters of Different Sizes, Shapes, and Densities in Noisy, High Dimensional Data](https://epubs.siam.org/doi/10.1137/1.9781611972733.5) by Levent Ertöz, Michael Steinbach, and Vipin Kumar (Proceedings of the 2003 SIAM International Conference on Data Mining)
 | **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
 |
