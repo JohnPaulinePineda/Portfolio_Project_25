@@ -1006,7 +1006,7 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 
 ###  1.5.5 Shared Nearest Neighbor Clusterings (SNNCLUST)
 |
-| [SNNCLUST](https://ieeexplore.ieee.org/document/1672233) Calculates the number of shared nearest neighbors, the shared nearest neighbor similarity and creates a shared nearest neighbors graph. The number of shared nearest neighbors is the intersection of the neighborhood of two points based on a user-defined size.
+| [SNNCLUST](https://ieeexplore.ieee.org/document/1672233) calculates the number of shared nearest neighbors, the shared nearest neighbor similarity and creates a shared nearest neighbors graph. The number of shared nearest neighbors is the intersection of the neighborhood of two points based on a user-defined size.
 |
 | **[A]** The SNNCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
