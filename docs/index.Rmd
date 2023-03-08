@@ -1127,7 +1127,7 @@ splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
 | **[A]** The density-based clustering algorithms applied to the principal component descriptors which were able to sufficiently capture the latent characteristics between the different cancer groups and identify multivariate outliers based on the higher estimated Rand indices and reasonable outlier detection rates are the following :
 |      **[A.1]** SNNCLUST : Shared Nearest Neighbor Clustering (<mark style="background-color: #CCECFF">**dbscan**</mark> package)
 |             **[A.1.1]** Outlier Detection Rate = 0.40000
-|             **[A.2.1]** Rand Index = 0.93115
+|             **[A.1.2]** Rand Index = 0.93115
 |      **[A.2]** DBSCAN: Density-Based Spatial Clustering of Applications with Noise (<mark style="background-color: #CCECFF">**dbscan**</mark> package)
 |             **[A.2.1]** Outlier Detection Rate = 0.32500
 |             **[A.2.2]** Rand Index = 0.83190
@@ -1135,7 +1135,7 @@ splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
 |             **[A.3.1]** Outlier Detection Rate = 0.37500
 |             **[A.3.2]** Rand Index = 0.82667
 |
-```{r section_1.5.6, warning=FALSE, message=FALSE}
+```{r section_1.6, warning=FALSE, message=FALSE}
 
 ##################################
 # Replotting the cluster plots for PCA-BASE
