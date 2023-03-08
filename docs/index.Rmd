@@ -35,7 +35,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 |             **[B.1.3]** Category 3 = <span style="color: #FF0000">labs=MELANOMA</span> 
 |             **[B.1.4]** Category 4 = <span style="color: #FF0000">labs=BREAST</span> 
 |             **[B.1.5]** Category 5 = <span style="color: #FF0000">labs=COLON</span> 
-|      **[B.2]** 6830/6831 descriptors = 6830/6830 numeric
+|      **[B.2]** 6830/6831 descriptors = 6830/6830 (numeric)
 |     
 |  
 ```{r section_1.1, warning=FALSE, message=FALSE}
