@@ -538,7 +538,7 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 
 ###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
 |
-| [DBSCAN](https://dl.acm.org/doi/10.5555/3001460.3001507) estimates the density around each data point by counting the number of points in a user-specified epsilon-neighborhood and applies a user-specified minimum points threshold to identify core, border and noise points. Core points are joined into a cluster when they are density-reachable, otherwise they are treated as separate clusters. Border points are assigned to the same cluster their adjacent core points belong to. All points identified as neither a core or border point are treated as noise.
+| [Density-Based Spatial Clustering of Applications with Noise](https://dl.acm.org/doi/10.5555/3001460.3001507) estimates the density around each data point by counting the number of points in a user-specified epsilon-neighborhood and applies a user-specified minimum points threshold to identify core, border and noise points. Core points are joined into a cluster when they are density-reachable, otherwise they are treated as separate clusters. Border points are assigned to the same cluster their adjacent core points belong to. All points identified as neither a core or border point are treated as noise.
 |
 | **[A]** The DBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
@@ -656,7 +656,7 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 
 ###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
 |
-| [HDBSCAN](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14) computes the hierarchical cluster tree representing density estimates along with stability-based flat cluster extraction. Mutual reachability distance values between points are determined and applied as a distance measure to construct a minimum spanning tree. The formulated tree is pruned using a stability-based extraction method to find optimal cuts in the hierarcy representing the resulting clusters.
+| [Hierarchical Density-Based Spatial Clustering of Applications with Noise](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14) computes the hierarchical cluster tree representing density estimates along with stability-based flat cluster extraction. Mutual reachability distance values between points are determined and applied as a distance measure to construct a minimum spanning tree. The formulated tree is pruned using a stability-based extraction method to find optimal cuts in the hierarcy representing the resulting clusters.
 |
 | **[A]** The HDBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
@@ -764,7 +764,7 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 
 ###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
 |
-| [OPTICS](https://dl.acm.org/doi/10.1145/304181.304187) extracts the clustering structure of a dataset by identifying the density-connected points, and builds a density-based representation of the data by creating an ordered list of points in the form of a reachability plot. Points which are spatially closest become neighbors in the ordering and are grouped together into the same cluster due to similarity in their reachability distances.
+| [Ordering Points to Identify the Clustering Structure](https://dl.acm.org/doi/10.1145/304181.304187) extracts the clustering structure of a dataset by identifying the density-connected points, and builds a density-based representation of the data by creating an ordered list of points in the form of a reachability plot. Points which are spatially closest become neighbors in the ordering and are grouped together into the same cluster due to similarity in their reachability distances.
 |
 | **[A]** The OPTICS algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
@@ -896,7 +896,7 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 
 ###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
 |
-| [JPCLUST](https://ieeexplore.ieee.org/document/1672233) builds a shared nearest neighbor graph with a user-defined neighborhood size for nearest neighbor sparsification. Any two points are assigned into the same cluster if these are in each other’s nearest neighbor list and share at least a user-defined number threshold of shared nearest neighbors.
+| [Jarvis-Patrick Clustering](https://ieeexplore.ieee.org/document/1672233) builds a shared nearest neighbor graph with a user-defined neighborhood size for nearest neighbor sparsification. Any two points are assigned into the same cluster if these are in each other’s nearest neighbor list and share at least a user-defined number threshold of shared nearest neighbors.
 |
 | **[A]** The JPCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
@@ -1004,9 +1004,9 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 
 ```
 
-###  1.5.5 Shared Nearest Neighbor Clusterings (SNNCLUST)
+###  1.5.5 Shared Nearest Neighbor Clustering (SNNCLUST)
 |
-| [SNNCLUST](https://ieeexplore.ieee.org/document/1672233) calculates the number of shared nearest neighbors, the shared nearest neighbor similarity and creates a shared nearest neighbors graph. The number of shared nearest neighbors is the intersection of the neighborhood of two points based on a user-defined size.
+| [Shared Nearest Neighbor Clustering](https://ieeexplore.ieee.org/document/1672233) calculates the number of shared nearest neighbors, the shared nearest neighbor similarity and creates a shared nearest neighbors graph. The number of shared nearest neighbors is the intersection of the neighborhood of two points based on a user-defined size.
 |
 | **[A]** The SNNCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
 |
