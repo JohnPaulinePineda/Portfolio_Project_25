@@ -38,6 +38,9 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 |      **[B.2]** 6830/6831 descriptors = 6830/6830 (numeric)
 |     
 |  
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.1, warning=FALSE, message=FALSE}
 ##################################
 # Loading R libraries
@@ -113,6 +116,9 @@ PDA <- NCI60
   row.names=NULL)
 )
 ```
+
+</details>
+
 ##  1.2 Data Quality Assessment
 |
 | Data quality assessment:
@@ -127,6 +133,10 @@ PDA <- NCI60
 | 
 | **[E]** Considering the unsupervised learning nature of the analysis, no data pre-processing was proceeded to address the data quality issues identified.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.2, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -344,6 +354,8 @@ if (length(names(DQA.Descriptors.Numeric))==0) {
 
 ```
 
+</details>
+
 ##  1.3 Data Preprocessing
 
 ###  1.3.1 Centering and Scaling
@@ -352,6 +364,10 @@ if (length(names(DQA.Descriptors.Numeric))==0) {
 |
 | **[A]** To maintain an objective comparison across the different descriptors, centering and scaling transformation was applied on the numeric variables. The <span style="color: #0000FF">center</span> method from the <mark style="background-color: #CCECFF">**caret**</mark> package was implemented which subtracts the average value of a numeric variable to all the values. As a result of centering, the variables had zero mean values. In addition, the <span style="color: #0000FF">scale</span> method, also from the <mark style="background-color: #CCECFF">**caret**</mark> package, was applied which performs a center transformation with each value of the variable divided by its standard deviation. Scaling the data coerced the values to have a common standard deviation of one.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.1, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -377,12 +393,18 @@ row.names(DPA.Descriptors.Numeric_CenteredScaledTransformed) <- NULL
 
 ```
 
+</details>
+
 ###  1.3.2 Dimensionality Reduction
 |
 | Data transformation assessment:
 |
 | **[A]** Considering the high dimensional nature of the dataset, Principal Component Analysis (PCA) was applied to summarize the information content from the 6830 descriptors by means of a smaller set of summary indices composed of the first three principal components, enabling a more efficient visualization and analysis.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.2, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -422,6 +444,9 @@ DR_PCA$x <- as.data.frame(DR_PCA$x)
                                 "PC3")])
 
 ```
+
+</details>
+
 ###  1.3.3 Pre-Processed Dataset
 |
 | Preliminary dataset assessment:
@@ -444,6 +469,10 @@ DR_PCA$x <- as.data.frame(DR_PCA$x)
 |      **[C.1]** Centering and scaling applied to improve data quality
 |      **[C.2]** PCA transformation to reduce the number of features into a workable subset
 | 
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.3, warning=FALSE, message=FALSE}
 ##################################
 # Gathering deascriptive statistics
@@ -451,6 +480,9 @@ DR_PCA$x <- as.data.frame(DR_PCA$x)
 (DR_PCA_SUBSET_Skimmed <- skim(as.data.frame(DR_PCA_SUBSET)))
 
 ```
+
+</details>
+
 ## 1.4 Data Exploration
 |
 | Exploratory data analysis:
@@ -464,6 +496,10 @@ DR_PCA$x <- as.data.frame(DR_PCA$x)
 |             **[B.1.1]** Clustering patterns observed for points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span>.
 |             **[B.1.2]** Scattered patterns observed for points identified under <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span>.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.4, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -534,6 +570,8 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 
 ```
 
+</details>
+
 ## 1.5 Density-Based Clustering
 
 ###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
@@ -556,6 +594,10 @@ splom(~EDA[,sapply(EDA, is.numeric)],
 |
 | **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.1, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -654,6 +696,8 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 
 ```
 
+</details>
+
 ###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
 |
 | [Hierarchical Density-Based Spatial Clustering of Applications with Noise](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14) computes the hierarchical cluster tree representing density estimates along with stability-based flat cluster extraction. Mutual reachability distance values between points are determined and applied as a distance measure to construct a minimum spanning tree. The formulated tree is pruned using a stability-based extraction method to find optimal cuts in the hierarcy representing the resulting clusters.
@@ -673,6 +717,10 @@ splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
 |
 | **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.2, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -762,6 +810,8 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 
 ```
 
+</details>
+
 ###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
 |
 | [Ordering Points to Identify the Clustering Structure](https://dl.acm.org/doi/10.1145/304181.304187) extracts the clustering structure of a dataset by identifying the density-connected points, and builds a density-based representation of the data by creating an ordered list of points in the form of a reachability plot. Points which are spatially closest become neighbors in the ordering and are grouped together into the same cluster due to similarity in their reachability distances.
@@ -782,6 +832,10 @@ splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
 |
 | **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.3, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -894,6 +948,8 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 
 ```
 
+</details>
+
 ###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
 |
 | [Jarvis-Patrick Clustering](https://ieeexplore.ieee.org/document/1672233) builds a shared nearest neighbor graph with a user-defined neighborhood size for nearest neighbor sparsification. Any two points are assigned into the same cluster if these are in each other’s nearest neighbor list and share at least a user-defined number threshold of shared nearest neighbors.
@@ -914,6 +970,10 @@ splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
 |
 | **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.4, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -1004,6 +1064,8 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 
 ```
 
+</details>
+
 ###  1.5.5 Shared Nearest Neighbor Clustering (SNNCLUST)
 |
 | [Shared Nearest Neighbor Clustering](https://ieeexplore.ieee.org/document/1672233) calculates the number of shared nearest neighbors, the shared nearest neighbor similarity and creates a shared nearest neighbors graph. The number of shared nearest neighbors is the intersection of the neighborhood of two points based on a user-defined size.
@@ -1025,6 +1087,10 @@ splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
 |
 | **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span>, <span style="color: #FF0000">labs=RENAL</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.5, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -1120,6 +1186,8 @@ splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
 
 ```
 
+</details>
+
 ##  1.6 Algorithm Comparison Summary
 |
 | Algorithm performance comparison:
@@ -1135,6 +1203,10 @@ splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
 |             **[A.3.1]** Outlier Detection Rate = 0.37500
 |             **[A.3.2]** Rand Index = 0.82667
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.6, warning=FALSE, message=FALSE}
 
 ##################################
@@ -1273,6 +1345,8 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
                           cex = 2))
 
 ```
+
+</details>
 
 # **2. References**
 |
