@@ -1,0 +1,1408 @@
+---
+title: "Unsupervised Learning : Identifying Multivariate Outliers Using Density-Based Clustering Algorithms"
+author: "John Pauline Pineda"
+date: "February 7, 2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: readable
+    highlight: tango
+    css: doc.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
+```
+# **1. Table of Contents**
+|
+| This project explores different density-based clustering algorithms for identifying multivariate outliers using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>. Methods applied in the analysis to cluster points and detect outliers from high dimensional data included the **Density-Based Spatial Clustering of Applications with Noise**, **Hierarchical Density-Based Spatial Clustering of Applications with Noise**, **Ordering Points to Identify the Clustering Structure**, **Jarvis-Patrick Clustering** and **Shared Nearest Neighbor Clustering** algorithms. The different clustering algorithms were subjectively evaluated based on their capability to effectively capture the latent characteristics between the different resulting clusters. In addition, the values for the outlier detection rate and Rand index obtained for each algorithm were also assessed for an objective comparison of their clustering performance. All results were consolidated in a [<span style="color: #FF0000">**Summary**</span>](#summary) presented at the end of the document.
+|
+| Density-based clustering is a form of unsupervised learning method aimed at identifying distinctive groups in the data based on a local cluster criterion made up of density-connected points. The algorithms applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**dbscan**</mark> package) attempt to determine potential clusters in a data space composed of a contiguous region of high point density separated from other clusters by contiguous regions of low point density which are typically considered as noise or outliers.
+|
+##  1.1 Sample Data
+|
+| The <mark style="background-color: #EEEEEE;color: #FF0000">**NCI6**</mark>  dataset from the  <mark style="background-color: #CCECFF">**ISLR**</mark> package was used for this illustrated example. Only a subset of observations representing major cancer types was used for the analysis.
+|
+| Preliminary dataset assessment:
+|
+| **[A]** 40 rows (observations)
+| 
+| **[B]** 6831 columns (variables)
+|      **[B.1]** 1/6831 label = <span style="color: #FF0000">labs</span> variable (factor)
+|             **[B.1.1]** Category 1 = <span style="color: #FF0000">labs=NSCLC</span> 
+|             **[B.1.2]** Category 2 = <span style="color: #FF0000">labs=RENAL</span> 
+|             **[B.1.3]** Category 3 = <span style="color: #FF0000">labs=MELANOMA</span> 
+|             **[B.1.4]** Category 4 = <span style="color: #FF0000">labs=BREAST</span> 
+|             **[B.1.5]** Category 5 = <span style="color: #FF0000">labs=COLON</span> 
+|      **[B.2]** 6830/6831 descriptors = 6830/6830 (numeric)
+|     
+|  
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.1, warning=FALSE, message=FALSE}
+##################################
+# Loading R libraries
+##################################
+library(AppliedPredictiveModeling)
+library(caret)
+library(rpart)
+library(lattice)
+library(dplyr)
+library(tidyr)
+library(moments)
+library(skimr)
+library(RANN)
+library(pls)
+library(corrplot)
+library(tidyverse)
+library(lares)
+library(DMwR)
+library(gridExtra)
+library(rattle)
+library(RColorBrewer)
+library(stats)
+library(ISLR)
+library(factoextra)
+library(NbClust)
+library(cluster)
+library(dbscan)
+library(fossil)
+
+##################################
+# Loading source and
+# formulating the train set
+##################################
+data(NCI60)
+NCI60 <- as.data.frame(NCI60)
+
+##################################
+# Filtering in the data subset for analysis
+# and setting appropriate variable types
+##################################
+NCI60.Reference <- NCI60
+
+NCI60 <- NCI60[NCI60$labs %in% c("BREAST",
+                                 "RENAL",
+                                 "MELANOMA",
+                                 "NSCLC",
+                                 "COLON"),]
+
+NCI60$labs <- as.factor(NCI60$labs)
+
+NCI60$labs <- factor(NCI60$labs,
+                     levels=c("BREAST",
+                                 "RENAL",
+                                 "MELANOMA",
+                                 "NSCLC",
+                                 "COLON"))
+
+##################################
+# Performing a general exploration of the data set
+##################################
+dim(NCI60)
+str(NCI60)
+summary(NCI60)
+
+##################################
+# Formulating a data type assessment summary
+##################################
+PDA <- NCI60
+(PDA.Summary <- data.frame(
+  Column.Index=c(1:length(names(PDA))),
+  Column.Name= names(PDA), 
+  Column.Type=sapply(PDA, function(x) class(x)), 
+  row.names=NULL)
+)
+```
+
+</details>
+
+##  1.2 Data Quality Assessment
+|
+| **[A]** No missing observations noted for any variable.
+|
+| **[B]** Low variance observed for 610 variables with First.Second.Mode.Ratio>5.
+|
+| **[C]** No low variance observed for any variable with Unique.Count.Ratio<0.01.
+|
+| **[D]** High skewness observed for 14 variables with Skewness>3 or Skewness<(-3).
+| 
+| **[E]** Considering the unsupervised learning nature of the analysis, no data pre-processing was proceeded to address the data quality issues identified.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DQA <- NCI60
+
+##################################
+# Formulating an overall data quality assessment summary
+##################################
+(DQA.Summary <- data.frame(
+  Column.Index=c(1:length(names(DQA))),
+  Column.Name= names(DQA),
+  Column.Type=sapply(DQA, function(x) class(x)),
+  Row.Count=sapply(DQA, function(x) nrow(DQA)),
+  NA.Count=sapply(DQA,function(x)sum(is.na(x))),
+  Fill.Rate=sapply(DQA,function(x)format(round((sum(!is.na(x))/nrow(DQA)),3),nsmall=3)),
+  row.names=NULL)
+)
+
+##################################
+# Listing all descriptors
+##################################
+DQA.Descriptors <- DQA
+
+##################################
+# Listing all numeric Descriptors
+##################################
+DQA.Descriptors.Numeric <- DQA.Descriptors[,sapply(DQA.Descriptors, is.numeric)]
+
+if (length(names(DQA.Descriptors.Numeric))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Descriptors.Numeric))),
+               " numeric descriptor variable(s)."))
+} else {
+  print("There are no numeric descriptor variables.")
+}
+
+##################################
+# Listing all factor Descriptors
+##################################
+DQA.Descriptors.Factor <- DQA.Descriptors[,sapply(DQA.Descriptors, is.factor)]
+
+if (length(names(DQA.Descriptors.Factor))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Descriptors.Factor))),
+               " factor descriptor variable(s)."))
+} else {
+  print("There are no factor descriptor variables.")
+}
+
+##################################
+# Formulating a data quality assessment summary for factor Descriptors
+##################################
+if (length(names(DQA.Descriptors.Factor))>0) {
+
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = x[!(x %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return("x"),
+           return(usm[tabsm == max(tabsm)]))
+  }
+
+  (DQA.Descriptors.Factor.Summary <- data.frame(
+  Column.Name= names(DQA.Descriptors.Factor),
+  Column.Type=sapply(DQA.Descriptors.Factor, function(x) class(x)),
+  Unique.Count=sapply(DQA.Descriptors.Factor, function(x) length(unique(x))),
+  First.Mode.Value=sapply(DQA.Descriptors.Factor, function(x) as.character(FirstModes(x)[1])),
+  Second.Mode.Value=sapply(DQA.Descriptors.Factor, function(x) as.character(SecondModes(x)[1])),
+  First.Mode.Count=sapply(DQA.Descriptors.Factor, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Descriptors.Factor, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  Unique.Count.Ratio=sapply(DQA.Descriptors.Factor, function(x) format(round((length(unique(x))/nrow(DQA.Descriptors.Factor)),3), nsmall=3)),
+  First.Second.Mode.Ratio=sapply(DQA.Descriptors.Factor, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  row.names=NULL)
+  )
+
+}
+
+##################################
+# Formulating a data quality assessment summary for numeric Descriptors
+##################################
+if (length(names(DQA.Descriptors.Numeric))>0) {
+
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = na.omit(x)[!(na.omit(x) %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return(0.00001),
+           return(usm[tabsm == max(tabsm)]))
+  }
+
+  (DQA.Descriptors.Numeric.Summary <- data.frame(
+  Column.Name= names(DQA.Descriptors.Numeric),
+  Column.Type=sapply(DQA.Descriptors.Numeric, function(x) class(x)),
+  Unique.Count=sapply(DQA.Descriptors.Numeric, function(x) length(unique(x))),
+  Unique.Count.Ratio=sapply(DQA.Descriptors.Numeric, function(x) format(round((length(unique(x))/nrow(DQA.Descriptors.Numeric)),3), nsmall=3)),
+  First.Mode.Value=sapply(DQA.Descriptors.Numeric, function(x) format(round((FirstModes(x)[1]),3),nsmall=3)),
+  Second.Mode.Value=sapply(DQA.Descriptors.Numeric, function(x) format(round((SecondModes(x)[1]),3),nsmall=3)),
+  First.Mode.Count=sapply(DQA.Descriptors.Numeric, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Descriptors.Numeric, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  First.Second.Mode.Ratio=sapply(DQA.Descriptors.Numeric, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  Minimum=sapply(DQA.Descriptors.Numeric, function(x) format(round(min(x,na.rm = TRUE),3), nsmall=3)),
+  Mean=sapply(DQA.Descriptors.Numeric, function(x) format(round(mean(x,na.rm = TRUE),3), nsmall=3)),
+  Median=sapply(DQA.Descriptors.Numeric, function(x) format(round(median(x,na.rm = TRUE),3), nsmall=3)),
+  Maximum=sapply(DQA.Descriptors.Numeric, function(x) format(round(max(x,na.rm = TRUE),3), nsmall=3)),
+  Skewness=sapply(DQA.Descriptors.Numeric, function(x) format(round(skewness(x,na.rm = TRUE),3), nsmall=3)),
+  Kurtosis=sapply(DQA.Descriptors.Numeric, function(x) format(round(kurtosis(x,na.rm = TRUE),3), nsmall=3)),
+  Percentile25th=sapply(DQA.Descriptors.Numeric, function(x) format(round(quantile(x,probs=0.25,na.rm = TRUE),3), nsmall=3)),
+  Percentile75th=sapply(DQA.Descriptors.Numeric, function(x) format(round(quantile(x,probs=0.75,na.rm = TRUE),3), nsmall=3)),
+  row.names=NULL)
+  )
+
+}
+
+##################################
+# Identifying potential data quality issues
+##################################
+
+##################################
+# Checking for missing observations
+##################################
+if ((nrow(DQA.Summary[DQA.Summary$NA.Count>0,]))>0){
+  print(paste0("Missing observations noted for ",
+               (nrow(DQA.Summary[DQA.Summary$NA.Count>0,])),
+               " variable(s) with NA.Count>0 and Fill.Rate<1.0."))
+  DQA.Summary[DQA.Summary$NA.Count>0,]
+} else {
+  print("No missing observations noted.")
+}
+
+##################################
+# Checking for zero or near-zero variance Descriptors
+##################################
+if (length(names(DQA.Descriptors.Factor))==0) {
+  print("No factor descriptors noted.")
+} else if (nrow(DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,])),
+               " factor variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance factor descriptors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,])),
+               " numeric variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance numeric descriptors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,])),
+               " numeric variable(s) with Unique.Count.Ratio<0.01."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,]
+} else {
+  print("No low variance numeric descriptors due to low unique count ratio noted.")
+}
+
+##################################
+# Checking for skewed Descriptors
+##################################
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),])>0){
+  print(paste0("High skewness observed for ",
+  (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),])),
+  " numeric variable(s) with Skewness>3 or Skewness<(-3)."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                 as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),]
+} else {
+  print("No skewed numeric descriptors noted.")
+}
+
+```
+
+</details>
+
+##  1.3 Data Preprocessing
+
+###  1.3.1 Centering and Scaling
+|
+| **[A]** To maintain an objective comparison across the different descriptors, centering and scaling transformation was applied on the numeric variables. The <span style="color: #0000FF">center</span> method from the <mark style="background-color: #CCECFF">**caret**</mark> package was implemented which subtracts the average value of a numeric variable to all the values. As a result of centering, the variables had zero mean values. In addition, the <span style="color: #0000FF">scale</span> method, also from the <mark style="background-color: #CCECFF">**caret**</mark> package, was applied which performs a center transformation with each value of the variable divided by its standard deviation. Scaling the data coerced the values to have a common standard deviation of one.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.1, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DPA <- NCI60
+
+##################################
+# Listing all descriptors
+##################################
+DPA.Descriptors <- DPA
+
+##################################
+# Listing all numeric descriptors
+##################################
+DPA.Descriptors.Numeric <- DPA.Descriptors[,sapply(DPA.Descriptors, is.numeric)]
+
+##################################
+# Applying a center and scale data transformation
+##################################
+DPA.Descriptors.Numeric_CenteredScaled <- preProcess(DPA.Descriptors.Numeric, method = c("center","scale"))
+DPA.Descriptors.Numeric_CenteredScaledTransformed <- predict(DPA.Descriptors.Numeric_CenteredScaled, DPA.Descriptors.Numeric)
+row.names(DPA.Descriptors.Numeric_CenteredScaledTransformed) <- NULL
+
+```
+
+</details>
+
+###  1.3.2 Dimensionality Reduction
+|
+| **[A]** Considering the high dimensional nature of the dataset, Principal Component Analysis (PCA) was applied to summarize the information content from the 6830 descriptors by means of a smaller set of summary indices composed of the first three principal components, enabling a more efficient visualization and analysis.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+Cancer <- NCI60$labs
+NCI60_Transformed <- cbind(DPA.Descriptors.Numeric_CenteredScaledTransformed, Cancer )
+
+DR <- as.data.frame(NCI60_Transformed)
+
+DR.Numeric <- DR[,sapply(DR, is.numeric)]
+
+row.names(DR.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Performing PCA
+##################################
+DR_PCA <- prcomp(DR.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(DR_PCA$x) <- NULL
+DR_PCA$x <- as.data.frame(DR_PCA$x)
+(DR_PCA_FULL <- cbind(DR_PCA$x, Cancer))
+
+##################################
+# Creating a data subset only containing
+# the first three principal components
+##################################
+(DR_PCA_SUBSET <- DR_PCA_FULL[,c("Cancer",
+                                "PC1",
+                                "PC2",
+                                "PC3")])
+
+```
+
+</details>
+
+###  1.3.3 Pre-Processed Dataset
+|
+| **[A]** 40 rows (observations)
+| 
+| **[B]** 4 columns (variables)
+|      **[B.1]** 1/4 label = <span style="color: #FF0000">labs</span> variable (factor)
+|             **[B.1.1]** Category 1 = <span style="color: #FF0000">labs=NSCLC</span> 
+|             **[B.1.2]** Category 2 = <span style="color: #FF0000">labs=RENAL</span> 
+|             **[B.1.3]** Category 3 = <span style="color: #FF0000">labs=MELANOMA</span> 
+|             **[B.1.4]** Category 4 = <span style="color: #FF0000">labs=BREAST</span> 
+|             **[B.1.5]** Category 5 = <span style="color: #FF0000">labs=COLON</span> 
+|      **[B.2]** 3/4 descriptors = 3/3 numeric
+|             **[B.2.1]** <span style="color: #FF0000">PC1</span> variable
+|             **[B.2.2]** <span style="color: #FF0000">PC2</span> variable 
+|             **[B.2.3]** <span style="color: #FF0000">PC3</span> variable 
+|  
+| **[C]** Pre-processing actions applied:
+|      **[C.1]** Centering and scaling applied to improve data quality
+|      **[C.2]** PCA transformation to reduce the number of features into a workable subset
+| 
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.3, warning=FALSE, message=FALSE}
+##################################
+# Gathering deascriptive statistics
+##################################
+(DR_PCA_SUBSET_Skimmed <- skim(as.data.frame(DR_PCA_SUBSET)))
+
+```
+
+</details>
+
+## 1.4 Data Exploration
+|
+| **[A]** From a univariate sense, all three principal component descriptors individually demonstrated differential relationships across the different levels of the <span style="color: #FF0000">Cancer</span> variable.
+|             **[A.1.1]** <span style="color: #FF0000">labs=COLON</span> cases are differentially expressed as compared to the other cancers in terms of the <span style="color: #FF0000">PC1</span> variable.
+|             **[A.1.2]** <span style="color: #FF0000">labs=RENAL</span> and <span style="color: #FF0000">labs=MELANOMA</span> cases are differentially expressed as compared to the other cancers in terms of the <span style="color: #FF0000">PC2</span> variable. 
+|             **[A.1.3]** <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=COLON</span> cases are differentially expressed as compared to the other cancers in terms of the <span style="color: #FF0000">PC3</span> variable. 
+|
+| **[B]** From a multivariate sense, pairwise analysis between the principal component descriptors demonstrated the following observations across the <span style="color: #FF0000">Cancer</span> variable levels.
+|             **[B.1.1]** Clustering patterns observed for points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span>.
+|             **[B.1.2]** Scattered patterns observed for points identified under <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span>.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+EDA <- as.data.frame(DR_PCA_SUBSET)
+
+EDA$Algorithm <- rep("PCA-BASE",nrow(EDA))
+
+##################################
+# Creating a function to define the
+# range of descriptors for plotting
+##################################
+
+featurePlotRange <- function(start,end){
+
+  ##################################
+  # Listing all Descriptors
+  ##################################
+  EDA.Descriptors <- EDA[,start:end]
+  EDA.Descriptors.Numeric <- EDA.Descriptors[,sapply(EDA.Descriptors, is.numeric)]
+
+  ##################################
+  # Formulating the box plots
+  ##################################
+  featurePlotResult <- featurePlot(x = EDA.Descriptors.Numeric,
+            y = EDA$Cancer,
+            plot = "box",
+            scales = list(x = list(relation="free", rot = 90),
+                          y = list(relation="free")),
+            adjust = 1.5,
+            pch = "|",
+            layout = c(1,ncol(EDA.Descriptors.Numeric)))
+
+  return(featurePlotResult)
+
+}
+
+##################################
+# Creating univariate plots
+# for the principal components
+# grouped by cancer
+##################################
+featurePlotRange(1,4)
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by cancer
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = EDA$Cancer,
+       data = EDA,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (PCA)")
+
+splom(~EDA[,sapply(EDA, is.numeric)],
+      groups = EDA$Cancer,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "PCA" )
+
+```
+
+</details>
+
+## 1.5 Density-Based Clustering
+
+###  1.5.1 Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
+|
+| [Density-Based Spatial Clustering of Applications with Noise](https://dl.acm.org/doi/10.5555/3001460.3001507) estimates the density around each data point by counting the number of points in a user-specified epsilon-neighborhood and applies a user-specified minimum points threshold to identify core, border and noise points. Core points are joined into a cluster when they are density-reachable, otherwise they are treated as separate clusters. Border points are assigned to the same cluster their adjacent core points belong to. All points identified as neither a core or border point are treated as noise.
+|
+| **[A]** The DBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+|
+| **[B]** The algorithm contains 2 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">eps</span> = size (radius) of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
+|      **[B.2]** <span style="color: #FF0000">minPts</span> = number of minimum points required in the eps neighborhood for core points (including the point itself) held constant at a value of 4 determined from the number of component descriptors increased by one.
+|
+| **[C]** The algorithm identified 4 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.32500
+|      **[D.2]** Rand Index = 0.83190
+|
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+|
+| **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.1, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting DBSCAN parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(DBSCAN_minPts = ncol(CA.Numeric) + 1)
+
+##################################
+# Inspecting the k-NN distance plot
+##################################
+kNNdistplot(CA.Numeric.Matrix, minPts = DBSCAN_minPts)
+abline(h=16, col="red", lty=2)
+DBSCAN_eps <- 16
+
+##################################
+# Implementing the DBSCAN Algorithm
+##################################
+(CA_DBSCAN <- dbscan(CA.Numeric.Matrix, 
+                    eps = DBSCAN_eps, 
+                    minPts = DBSCAN_minPts))
+
+CA_DBSCAN_Summary <- CA
+CA_DBSCAN_Summary$Algorithm <- rep("DBSCAN",nrow(CA_DBSCAN_Summary))
+CA_DBSCAN_Summary$DBSCAN_Cluster <- ifelse(CA_DBSCAN$cluster==0,
+                                           "Outlier",
+                                           paste0("Cluster ",as.character(CA_DBSCAN$cluster)))
+
+CA_DBSCAN_Summary$DBSCAN_Cluster <- factor(CA_DBSCAN_Summary$DBSCAN_Cluster,
+                                           levels=c("Outlier", 
+                                                    "Cluster 1", 
+                                                    "Cluster 2", 
+                                                    "Cluster 3", 
+                                                    "Cluster 4"))
+CA_DBSCAN_Summary
+
+table(CA_DBSCAN_Summary$Cancer,CA_DBSCAN_Summary$DBSCAN_Cluster)
+
+##################################
+# Computing the DBSCAN
+# outlier detection rate
+##################################
+(CA_DBSCAN_OutlierDetectionRate <- nrow(CA_DBSCAN_Summary[CA_DBSCAN_Summary$DBSCAN_Cluster=="Outlier",])/
+  nrow(CA_DBSCAN_Summary))
+
+##################################
+# Comparing the similarity of results
+# between the cancer groups
+# and the formulated DBSCAN clusters
+# ignoring the identified outliers
+##################################
+CA_DBSCAN_Evaluation <- CA_DBSCAN_Summary[CA_DBSCAN_Summary$DBSCAN_Cluster!="Outlier",]
+CA_DBSCAN_Evaluation$Cancer <- factor(CA_DBSCAN_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_DBSCAN_Evaluation$CancerGroups <- as.numeric(CA_DBSCAN_Evaluation$Cancer)
+CA_DBSCAN_Evaluation$DBSCAN_ClusterGroups <- as.numeric(CA_DBSCAN_Evaluation$DBSCAN_Cluster)
+
+CA_DBSCAN_Evaluation
+
+(CA_DBSCAN_RandIndex <- rand.index(CA_DBSCAN_Evaluation$CancerGroups,
+                                  CA_DBSCAN_Evaluation$DBSCAN_ClusterGroups))
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by DBSCAN clusters
+##################################
+cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
+       data = CA_DBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (DBSCAN)")
+
+splom(~CA_DBSCAN_Summary[,sapply(CA_DBSCAN_Summary, is.numeric)],
+      groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "DBSCAN" )
+
+```
+
+</details>
+
+###  1.5.2 Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN)
+|
+| [Hierarchical Density-Based Spatial Clustering of Applications with Noise](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14) computes the hierarchical cluster tree representing density estimates along with stability-based flat cluster extraction. Mutual reachability distance values between points are determined and applied as a distance measure to construct a minimum spanning tree. The formulated tree is pruned using a stability-based extraction method to find optimal cuts in the hierarcy representing the resulting clusters.
+|
+| **[A]** The HDBSCAN algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+|
+| **[B]** The algorithm contains 1 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">minPts</span> = minimum size of clusters held constant at a value of 6 determined from the number of component descriptors multiplied by two.
+|
+| **[C]** The algorithm identified 2 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.10000
+|      **[D.2]** Rand Index = 0.52698
+|
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+|
+| **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting HDBSCAN parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(HDBSCAN_minPts = ncol(CA.Numeric)*2)
+
+##################################
+# Implementing the HDBSCAN Algorithm
+##################################
+(CA_HDBSCAN <- hdbscan(CA.Numeric.Matrix, 
+                    minPts = HDBSCAN_minPts))
+plot(CA_HDBSCAN, show_flat=TRUE)
+
+CA_HDBSCAN_Summary <- CA
+CA_HDBSCAN_Summary$Algorithm <- rep("HDBSCAN",nrow(CA_HDBSCAN_Summary))
+CA_HDBSCAN_Summary$HDBSCAN_Cluster <- ifelse(CA_HDBSCAN$cluster==0,
+                                             "Outlier",
+                                             paste0("Cluster ",as.character(CA_HDBSCAN$cluster)))
+
+CA_HDBSCAN_Summary$HDBSCAN_Cluster <- factor(CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+                                             levels=c("Outlier", 
+                                                      "Cluster 1", 
+                                                      "Cluster 2"))
+CA_HDBSCAN_Summary
+
+table(CA_HDBSCAN_Summary$Cancer,CA_HDBSCAN_Summary$HDBSCAN_Cluster)
+
+##################################
+# Computing the HDBSCAN
+# outlier detection rate
+##################################
+(CA_HDBSCAN_OutlierDetectionRate <- nrow(CA_HDBSCAN_Summary[CA_HDBSCAN_Summary$HDBSCAN_Cluster=="Outlier",])/
+  nrow(CA_HDBSCAN_Summary))
+
+##################################
+# Comparing the similarity of results
+# between the cancer groups
+# and the formulated HDBSCAN clusters
+# ignoring the identified outliers
+##################################
+CA_HDBSCAN_Evaluation <- CA_HDBSCAN_Summary[CA_HDBSCAN_Summary$HDBSCAN_Cluster!="Outlier",]
+CA_HDBSCAN_Evaluation$Cancer <- factor(CA_HDBSCAN_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_HDBSCAN_Evaluation$CancerGroups <- as.numeric(CA_HDBSCAN_Evaluation$Cancer)
+CA_HDBSCAN_Evaluation$HDBSCAN_ClusterGroups <- as.numeric(CA_HDBSCAN_Evaluation$HDBSCAN_Cluster)
+
+CA_HDBSCAN_Evaluation
+
+(CA_HDBSCAN_RandIndex <- rand.index(CA_HDBSCAN_Evaluation$CancerGroups,
+                                  CA_HDBSCAN_Evaluation$HDBSCAN_ClusterGroups))
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by HDBSCAN clusters
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+       data = CA_HDBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (HDBSCAN)")
+
+splom(~CA_HDBSCAN_Summary[,sapply(CA_HDBSCAN_Summary, is.numeric)],
+      groups = CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "HDBSCAN" )
+
+```
+
+</details>
+
+###  1.5.3 Ordering Points to Identify the Clustering Structure (OPTICS)
+|
+| [Ordering Points to Identify the Clustering Structure](https://dl.acm.org/doi/10.1145/304181.304187) extracts the clustering structure of a dataset by identifying the density-connected points, and builds a density-based representation of the data by creating an ordered list of points in the form of a reachability plot. Points which are spatially closest become neighbors in the ordering and are grouped together into the same cluster due to similarity in their reachability distances.
+|
+| **[A]** The OPTICS algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+|
+| **[B]** The algorithm contains 2 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">eps</span> = upper limit of the size of the epsilon neighborhood held constant at a value of 16 determined from an assessment of the k-nearest neighbor distance plot (where the value of the <span style="color: #FF0000">minPts</span> parameter was assigned as k).
+|      **[B.2]** <span style="color: #FF0000">minPts</span> = parameter used to identify dense neighborhoods and the reachability distance is calculated as the distance to the minPts nearest neighbor held constant at a value of 4 determined from the number of component descriptors increased by one.
+|
+| **[C]** Using the eps parameter as the threshold for the reachability plot, the algorithm identified 4 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.37500
+|      **[D.2]** Rand Index = 0.82667
+|
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span>. 
+|
+| **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative. However, the formulated clusters containing points identified under <span style="color: #FF0000">labs=NSCLC</span> were not immediately clear.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.3, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting OPTICS parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(OPTICS_minPts = ncol(CA.Numeric) + 1)
+
+##################################
+# Inspecting the k-NN distance plot
+##################################
+kNNdistplot(CA.Numeric.Matrix, minPts = OPTICS_minPts)
+abline(h=16, col="red", lty=2)
+OPTICS_eps <- 16
+
+##################################
+# Implementing the OPTICS Algorithm
+##################################
+(CA_OPTICS <- optics(CA.Numeric.Matrix, 
+                    eps = OPTICS_eps, 
+                    minPts = OPTICS_minPts))
+
+##################################
+# Plotting the reachability plot
+##################################
+CA_OPTICS$order
+plot(CA_OPTICS)
+
+##################################
+# Extracting a DBSCAN clustering 
+# by cutting the reachability plot at eps_cl
+##################################
+CA_OPTICS_DBSCAN <- extractDBSCAN(CA_OPTICS, 
+                                  eps_cl = 16)
+CA_OPTICS_DBSCAN
+
+CA_OPTICS_Summary <- CA
+CA_OPTICS_Summary$Algorithm <- rep("OPTICS",nrow(CA_OPTICS_Summary))
+CA_OPTICS_Summary$OPTICS_Cluster <- ifelse(CA_OPTICS_DBSCAN$cluster==0,
+                                    "Outlier",
+                                    paste0("Cluster ",as.character(CA_OPTICS_DBSCAN$cluster)))
+
+CA_OPTICS_Summary$OPTICS_Cluster<- factor(CA_OPTICS_Summary$OPTICS_Cluster,
+                                          levels=c("Outlier",
+                                                   "Cluster 1",
+                                                   "Cluster 2",
+                                                   "Cluster 3",
+                                                   "Cluster 4"))
+CA_OPTICS_Summary
+
+table(CA_OPTICS_Summary$Cancer,CA_OPTICS_Summary$OPTICS_Cluster)
+
+##################################
+# Computing the OPTICS
+# outlier detection rate
+##################################
+(CA_OPTICS_OutlierDetectionRate <- nrow(CA_OPTICS_Summary[CA_OPTICS_Summary$OPTICS_Cluster=="Outlier",])/
+  nrow(CA_OPTICS_Summary))
+
+##################################
+# Comparing the similarity of results
+# between the cancer groups
+# and the formulated OPTICS clusters
+# ignoring the identified outliers
+##################################
+CA_OPTICS_Evaluation <- CA_OPTICS_Summary[CA_OPTICS_Summary$OPTICS_Cluster!="Outlier",]
+CA_OPTICS_Evaluation$Cancer <- factor(CA_OPTICS_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_OPTICS_Evaluation$CancerGroups <- as.numeric(CA_OPTICS_Evaluation$Cancer)
+CA_OPTICS_Evaluation$OPTICS_ClusterGroups <- as.numeric(CA_OPTICS_Evaluation$OPTICS_Cluster)
+
+CA_OPTICS_Evaluation
+
+(CA_OPTICS_RandIndex <- rand.index(CA_OPTICS_Evaluation$CancerGroups,
+                                  CA_OPTICS_Evaluation$OPTICS_ClusterGroups))
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by OPTICS clusters
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_OPTICS_Summary$OPTICS_Cluster,
+       data = CA_OPTICS_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (OPTICS)")
+
+splom(~CA_OPTICS_Summary[,sapply(CA_OPTICS_Summary, is.numeric)],
+      groups = CA_OPTICS_Summary$OPTICS_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "OPTICS" )
+
+```
+
+</details>
+
+###  1.5.4 Jarvis-Patrick Clustering (JPCLUST)
+|
+| [Jarvis-Patrick Clustering](https://ieeexplore.ieee.org/document/1672233) builds a shared nearest neighbor graph with a user-defined neighborhood size for nearest neighbor sparsification. Any two points are assigned into the same cluster if these are in each other’s nearest neighbor list and share at least a user-defined number threshold of shared nearest neighbors.
+|
+| **[A]** The JPCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+|
+| **[B]** The algorithm contains 2 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification held constant at a value of 6 determined from the number of component descriptors multiplied by two.
+|      **[B.2]** <span style="color: #FF0000">kt</span> = threshold on the number of shared nearest neighbors (including the points themselves) to form cluster held constant at a value of 3 determined from the <span style="color: #FF0000">k</span> parameter divided by two.
+|
+| **[C]** The algorithm identified 4 informative clusters containing a subset of points. However, the cluster containing the least points was assigned as the outlier group. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.05000
+|      **[D.2]** Rand Index = 0.59886
+|
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=RENAL</span>. 
+|
+| **[F]** The formulated cluster containing points identified under <span style="color: #FF0000">labs=MELANOMA</span> was sufficiently informative. However, the formulated cluster containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=RENAL</span>, <span style="color: #FF0000">labs=NSCLC</span> and <span style="color: #FF0000">labs=BREAST</span> was too generic as it consolidated all other cancer groups within itself.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting JPCLUST parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(JPCLUST_k  = ncol(CA.Numeric)*2)
+(JPCLUST_kt = JPCLUST_k/2)
+
+##################################
+# Implementing the JPCLUST Algorithm
+##################################
+(CA_JPCLUST <- jpclust(CA.Numeric.Matrix,
+                       k = JPCLUST_k,
+                       kt = JPCLUST_kt))
+table(CA_JPCLUST$cluster)
+
+CA_JPCLUST_Summary <- CA
+CA_JPCLUST_Summary$Algorithm <- rep("JPCLUST",nrow(CA_JPCLUST_Summary))
+CA_JPCLUST_Summary$JPCLUST_Cluster <- paste0("Cluster ",as.character(CA_JPCLUST$cluster))
+
+CA_JPCLUST_Summary$JPCLUST_Cluster <- factor(CA_JPCLUST_Summary$JPCLUST_Cluster,
+                                             levels=c("Cluster 1", 
+                                                      "Cluster 2", 
+                                                      "Cluster 3", 
+                                                      "Cluster 4"))
+CA_JPCLUST_Summary
+
+table(CA_JPCLUST_Summary$Cancer,CA_JPCLUST_Summary$JPCLUST_Cluster)
+
+##################################
+# Computing the JPCLUST
+# outlier detection rate
+##################################
+(CA_JPCLUST_OutlierDetectionRate <- nrow(CA_JPCLUST_Summary[CA_JPCLUST_Summary$JPCLUST_Cluster=="Cluster 1",])/
+  nrow(CA_JPCLUST_Summary))
+
+##################################
+# Comparing the similarity of results
+# between the cancer groups
+# and the formulated JPCLUST clusters
+# ignoring the identified outliers (Cluster 1)
+##################################
+CA_JPCLUST_Evaluation <- CA_JPCLUST_Summary[CA_JPCLUST_Summary$JPCLUST_Cluster!="Cluster 1",]
+CA_JPCLUST_Evaluation$Cancer <- factor(CA_JPCLUST_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_JPCLUST_Evaluation$CancerGroups <- as.numeric(CA_JPCLUST_Evaluation$Cancer)
+CA_JPCLUST_Evaluation$JPCLUST_ClusterGroups <- as.numeric(CA_JPCLUST_Evaluation$JPCLUST_Cluster)
+
+CA_JPCLUST_Evaluation
+
+(CA_JPCLUST_RandIndex <- rand.index(CA_JPCLUST_Evaluation$CancerGroups,
+                                  CA_JPCLUST_Evaluation$JPCLUST_ClusterGroups))
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by JPCLUST clusters
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_JPCLUST_Summary$JPCLUST_Cluster,
+       data = CA_JPCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (JPCLUST)")
+
+splom(~CA_JPCLUST_Summary[,sapply(CA_JPCLUST_Summary, is.numeric)],
+      groups = CA_JPCLUST_Summary$JPCLUST_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "JPCLUST" )
+
+```
+
+</details>
+
+###  1.5.5 Shared Nearest Neighbor Clustering (SNNCLUST)
+|
+| [Shared Nearest Neighbor Clustering](https://ieeexplore.ieee.org/document/1672233) calculates the number of shared nearest neighbors, the shared nearest neighbor similarity and creates a shared nearest neighbors graph. The number of shared nearest neighbors is the intersection of the neighborhood of two points based on a user-defined size.
+|
+| **[A]** The SNNCLUST algorithm was implemented only for the <span style="color: #FF0000">PC1</span>, <span style="color: #FF0000">PC2</span> and <span style="color: #FF0000">PC3</span> principal component descriptors using the <mark style="background-color: #CCECFF">**dbscan**</mark> package.  
+|
+| **[B]** The algorithm contains 3 hyperparameters:
+|      **[B.1]** <span style="color: #FF0000">k</span> = neighborhood size for nearest neighbor sparsification to create the shared nearest neighbor graph held constant at a value of 6 determined from the number of component descriptors multiplied by two.
+|      **[B.2]** <span style="color: #FF0000">eps</span> = two objects are only reachable from each other if they share at least eps nearest neighbors held constant at a value of 5.
+|      **[B.3]** <span style="color: #FF0000">minPts</span> = minimum number of points that share at least eps nearest neighbors for a point to be considered a core points held constant at a value of 4 determined from the number of component descriptors increased by one.
+|
+| **[C]** The algorithm identified 4 informative clusters containing a subset of points, with the rest identified as outliers. For non-outliers, the Rand Index was determined by comparing the similarity between the cancer groupings and the cluster membership. 
+|
+| **[D]** The clustering algorithm performance is summarized as follows:
+|      **[D.1]** Outlier Detection Rate = 0.40000
+|      **[D.2]** Rand Index = 0.93115
+|
+| **[E]** The proportion of identified outliers was reasonable mostly composed of points identified under <span style="color: #FF0000">labs=BREAST</span> and <span style="color: #FF0000">labs=NSCLC</span>. 
+|
+| **[F]** The formulated clusters containing points identified under <span style="color: #FF0000">labs=COLON</span>, <span style="color: #FF0000">labs=MELANOMA</span>, <span style="color: #FF0000">labs=RENAL</span> and <span style="color: #FF0000">labs=RENAL</span> were sufficiently informative.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.5, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CA <- as.data.frame(DR_PCA_SUBSET)
+
+##################################
+# Setting SNNCLUST parameters
+##################################
+CA.Numeric <- CA[,sapply(CA, is.numeric)]
+CA.Numeric.Matrix <- as.matrix(CA.Numeric)
+(SNNCLUST_k  = ncol(CA.Numeric)*2)
+(SNNCLUST_minPts = ncol(CA.Numeric) + 1)
+SNNCLUST_eps <- 5
+
+##################################
+# Implementing the SNNCLUST Algorithm
+##################################
+(CA_SNNCLUST <- sNNclust(CA.Numeric.Matrix,
+                       k = SNNCLUST_k,
+                       minPts = SNNCLUST_minPts,
+                       eps = SNNCLUST_eps))
+table(CA_SNNCLUST$cluster)
+
+CA_SNNCLUST_Summary <- CA
+CA_SNNCLUST_Summary$Algorithm <- rep("SNNCLUST",nrow(CA_SNNCLUST_Summary))
+CA_SNNCLUST_Summary$SNNCLUST_Cluster <- ifelse(CA_SNNCLUST$cluster==0,
+                                             "Outlier",
+                                             paste0("Cluster ",as.character(CA_SNNCLUST$cluster)))
+
+CA_SNNCLUST_Summary$SNNCLUST_Cluster <- factor(CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+                                             levels=c("Outlier", 
+                                                      "Cluster 1", 
+                                                      "Cluster 2",
+                                                      "Cluster 3", 
+                                                      "Cluster 4"))
+CA_SNNCLUST_Summary
+
+table(CA_SNNCLUST_Summary$Cancer,CA_SNNCLUST_Summary$SNNCLUST_Cluster)
+
+##################################
+# Computing the SNNCLUST
+# outlier detection rate
+##################################
+(CA_SNNCLUST_OutlierDetectionRate <- nrow(CA_SNNCLUST_Summary[CA_SNNCLUST_Summary$SNNCLUST_Cluster=="Outlier",])/
+  nrow(CA_SNNCLUST_Summary))
+
+##################################
+# Comparing the similarity of results
+# between the cancer groups
+# and the formulated SNNCLUST clusters
+# ignoring the identified outliers
+##################################
+CA_SNNCLUST_Evaluation <- CA_SNNCLUST_Summary[CA_SNNCLUST_Summary$SNNCLUST_Cluster!="Outlier",]
+CA_SNNCLUST_Evaluation$Cancer <- factor(CA_SNNCLUST_Evaluation$Cancer,
+                                   levels=c("BREAST",
+                                            "RENAL",
+                                            "MELANOMA",
+                                            "NSCLC",
+                                            "COLON"))
+
+CA_SNNCLUST_Evaluation$CancerGroups <- as.numeric(CA_SNNCLUST_Evaluation$Cancer)
+CA_SNNCLUST_Evaluation$SNNCLUST_ClusterGroups <- as.numeric(CA_SNNCLUST_Evaluation$SNNCLUST_Cluster)
+
+CA_SNNCLUST_Evaluation
+
+(CA_SNNCLUST_RandIndex <- rand.index(CA_SNNCLUST_Evaluation$CancerGroups,
+                                  CA_SNNCLUST_Evaluation$SNNCLUST_ClusterGroups))
+
+##################################
+# Creating multivariate plots
+# for the principal components
+# grouped by SNNCLUST clusters
+##################################
+cloud(PC1 ~ PC2*PC3,
+      groups = CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+       data = CA_SNNCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "Three-Way Scatterplot of Principal Component Descriptors (SNNCLUST)")
+
+splom(~CA_SNNCLUST_Summary[,sapply(CA_SNNCLUST_Summary, is.numeric)],
+      groups = CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+      pch = 16,
+      cex = 2,
+      alpha = 0.45,
+      auto.key = list(points = TRUE, space = "top"),
+      main = "Pairwise Scatterplots of Principal Component Descriptors",
+      xlab = "SNNCLUST" )
+
+```
+
+</details>
+
+##  1.6 Consolidated Findings
+|
+| **[A]** The density-based clustering algorithms applied to the principal component descriptors which were able to sufficiently capture the latent characteristics between the different cancer groups and identify multivariate outliers based on the higher estimated Rand indices and reasonable outlier detection rates are the following :
+|      **[A.1]** **SNNCLUST : Shared Nearest Neighbor Clustering** (<mark style="background-color: #CCECFF">**dbscan**</mark> package)
+|             **[A.1.1]** Outlier Detection Rate = 0.40000
+|             **[A.1.2]** Rand Index = 0.93115
+|      **[A.2]** **DBSCAN: Density-Based Spatial Clustering of Applications with Noise** (<mark style="background-color: #CCECFF">**dbscan**</mark> package)
+|             **[A.2.1]** Outlier Detection Rate = 0.32500
+|             **[A.2.2]** Rand Index = 0.83190
+|      **[A.3]** **OPTICS: Ordering Points to Identify the Clustering Structure** (<mark style="background-color: #CCECFF">**dbscan**</mark> package)
+|             **[A.3.1]** Outlier Detection Rate = 0.37500
+|             **[A.3.2]** Rand Index = 0.82667
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.6, warning=FALSE, message=FALSE}
+
+##################################
+# Replotting the cluster plots for PCA-BASE
+##################################
+CA_PCABASE_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = EDA$Cancer,
+       data = EDA,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for DBSCAN
+##################################
+CA_DBSCAN_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_DBSCAN_Summary$DBSCAN_Cluster,
+       data = CA_DBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for HDBSCAN
+##################################
+CA_HDBSCAN_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_HDBSCAN_Summary$HDBSCAN_Cluster,
+       data = CA_HDBSCAN_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for OPTICS
+##################################
+CA_OPTICS_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_OPTICS_Summary$OPTICS_Cluster,
+       data = CA_OPTICS_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for JPCLUST
+##################################
+CA_JPCLUST_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_JPCLUST_Summary$JPCLUST_Cluster,
+       data = CA_JPCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Replotting the cluster plots for SNNCLUST
+##################################
+CA_SNNCLUST_ClusterPlot <- cloud(PC1 ~ PC2*PC3 | Algorithm,
+      groups = CA_SNNCLUST_Summary$SNNCLUST_Cluster,
+       data = CA_SNNCLUST_Summary,
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+####################################################################
+# Consolidating all algorithm performance results
+####################################################################
+grid.arrange(CA_PCABASE_ClusterPlot,
+             CA_SNNCLUST_ClusterPlot,
+             CA_DBSCAN_ClusterPlot,
+             CA_OPTICS_ClusterPlot,
+             CA_JPCLUST_ClusterPlot,
+             CA_HDBSCAN_ClusterPlot,
+             ncol=3)
+
+##################################
+# Consolidating all 
+# outlier detection rates and rand indices
+# for the analysis data
+##################################
+ClusteringAlgorithm <- c('DBSCAN','HDBSCAN','OPTICS','JPCLUST','SNNCLUST',
+                         'DBSCAN','HDBSCAN','OPTICS','JPCLUST','SNNCLUST')
+
+Set <- c(rep('Outlier Detection Rate',5),
+         rep('Rand Index',5))
+
+ClusteringMetrics <- c(CA_DBSCAN_OutlierDetectionRate,
+                       CA_HDBSCAN_OutlierDetectionRate,
+                       CA_OPTICS_OutlierDetectionRate,
+                       CA_JPCLUST_OutlierDetectionRate,
+                       CA_SNNCLUST_OutlierDetectionRate,
+                       CA_DBSCAN_RandIndex,
+                       CA_HDBSCAN_RandIndex,
+                       CA_OPTICS_RandIndex,
+                       CA_JPCLUST_RandIndex,
+                       CA_SNNCLUST_RandIndex)
+
+ClusteringPeformance_Summary <- as.data.frame(cbind(ClusteringAlgorithm,
+                                                    Set,
+                                                    ClusteringMetrics))
+
+ClusteringPeformance_Summary$ClusteringMetrics <- as.numeric(as.character(ClusteringPeformance_Summary$ClusteringMetrics))
+ClusteringPeformance_Summary$Set <- factor(ClusteringPeformance_Summary$Set,
+                                           levels = c("Outlier Detection Rate",
+                                                      "Rand Index"))
+ClusteringPeformance_Summary$ClusteringAlgorithm <- factor(ClusteringPeformance_Summary$ClusteringAlgorithm,
+                                                      levels = c('DBSCAN',
+                                                                 'HDBSCAN',
+                                                                 'OPTICS',
+                                                                 'JPCLUST',
+                                                                 'SNNCLUST'))
+
+print(ClusteringPeformance_Summary, row.names=FALSE)
+
+(ClusteringPeformance_Summary_Plot <- dotplot(ClusteringAlgorithm ~ ClusteringMetrics,
+                          data = ClusteringPeformance_Summary,
+                          groups = Set,
+                          main = "Clustering Algorithm Performance Comparison",
+                          ylab = "Algorithm",
+                          xlab = "Clustering Performance Metrics",
+                          auto.key = list(adj = 1),
+                          type=c("p", "h"),
+                          origin = 0,
+                          alpha = 0.45,
+                          pch = 16,
+                          cex = 2))
+
+```
+
+</details>
+|
+# **2. Summary** <a name="summary"></a>
+|
+| ![](D:/Github_Codes/ProjectPortfolio/Portfolio_Project_25/docs/Project25_Summary.png)
+|
+# **3. References**
+|
+| **[Book]** [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson
+| **[Book]** [An Introduction to Statistical Learning](https://www.statlearning.com/) by Gareth James, Daniela Witten, Trevor Hastie and Rob Tibshirani
+| **[Book]** [Multivariate Data Visualization with R](http://lmdvr.r-forge.r-project.org/figures/figures.html) by Deepayan Sarkar
+| **[Book]** [Machine Learning](https://bookdown.org/ssjackson300/Machine-Learning-Lecture-Notes/) by Samuel Jackson
+| **[Book]** [Data Modeling Methods](https://bookdown.org/larget_jacob/data-modeling-methods/) by Jacob Larget
+| **[Book]** [Introduction to R and Statistics](https://saestatsteaching.tech/) by University of Western Australia
+| **[Book]** [Feature Engineering and Selection: A Practical Approach for Predictive Models](http://www.feat.engineering/index.html) by Max Kuhn and Kjell Johnson
+| **[Book]** [Introduction to Research Methods](https://bookdown.org/ejvanholm/Textbook/) by Eric van Holm
+| **[R Package]** [AppliedPredictiveModeling](https://cran.r-project.org/web//packages/AppliedPredictiveModeling/AppliedPredictiveModeling.pdf) by Max Kuhn
+| **[R Package]** [caret](https://topepo.github.io/caret/index.html) by Max Kuhn
+| **[R Package]** [rpart](https://mran.microsoft.com/web/packages/rpart/rpart.pdf) by Terry Therneau and Beth Atkinson
+| **[R Package]** [lattice](https://cran.r-project.org/web/packages/lattice/lattice.pdf) by  Deepayan Sarkar
+| **[R Package]** [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html/) by Hadley Wickham
+| **[R Package]** [moments](https://cran.r-project.org/web/packages/moments/index.html) by Lukasz Komsta and Frederick
+| **[R Package]** [skimr](https://cran.r-project.org/web/packages/skimr/skimr.pdf) by  Elin Waring
+| **[R Package]** [RANN](https://cran.r-project.org/web/packages/RANN/RANN.pdf) by  Sunil Arya, David Mount, Samuel Kemp and Gregory Jefferis
+| **[R Package]** [corrplot](https://cran.r-project.org/web/packages/corrplot/corrplot.pdf) by Taiyun Wei
+| **[R Package]** [tidyverse](https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf) by Hadley Wickham
+| **[R Package]** [lares](https://cran.rstudio.com/web/packages/lares/lares.pdf) by Bernardo Lares
+| **[R Package]** [DMwR](https://mran.microsoft.com/snapshot/2016-05-02/web/packages/DMwR/DMwR.pdf) by Luis Torgo
+| **[R Package]** [gridExtra](https://cran.r-project.org/web/packages/gridExtra/gridExtra.pdf) by Baptiste Auguie and Anton Antonov
+| **[R Package]** [rattle](https://cran.r-project.org/web/packages/rattle/rattle.pdf) by Graham Williams
+| **[R Package]** [RColorBrewer](https://cran.r-project.org/web//packages/RColorBrewer/RColorBrewer.pdf) by Erich Neuwirth
+| **[R Package]** [stats](https://search.r-project.org/R/refmans/stats/html/00Index.html) by R Core Team
+| **[R Package]** [ISLR](https://cran.r-project.org/web/packages/ISLR/ISLR.pdf) by Trevor Hastie
+| **[R Package]** [factoextra](https://cran.r-project.org/web/packages/factoextra/factoextra.pdf) by Alboukadel Kassambara
+| **[R Package]** [NbClust](https://cran.r-project.org/web/packages/NbClust/NbClust.pdf) by Malika Charrad, Nadia Ghazzali, Veronique Boiteau and Azam Niknafs
+| **[R Package]** [cluster](https://cran.r-project.org/web/packages/cluster/cluster.pdf) by Martin Maechler
+| **[R Package]** [dbscan](https://cran.r-project.org/web/packages/dbscan/dbscan.pdf) by Michael Hahsler
+| **[R Package]** [fossil](https://cran.r-project.org/web/packages/fossil/fossil.pdf) by Matthew Vavrek
+| **[Article]** [Cluster Analysis in R Simplified and Enhanced](https://www.datanovia.com/en/blog/cluster-analysis-in-r-simplified-and-enhanced/) by Datanovia Team
+| **[Article]** [Cluster Validation Essentials](http://www.sthda.com/english/articles/29-cluster-validation-essentials/96-determiningthe-optimal-number-of-clusters-3-must-know-methods/) by Alboukadel Kassambara
+| **[Article]** [Data Preparation and R Packages for Cluster Analysis](https://www.datanovia.com/en/lessons/data-preparation-and-r-packages-for-cluster-analysis/) by Datanovia Team
+| **[Article]** [The Complete Guide to Clustering Analysis: K-Means and Hierarchical Clustering by Hand and in R](https://statsandr.com/blog/clustering-analysis-k-means-and-hierarchical-clustering-by-hand-and-in-r/#silhouette-method) by Antoine Soetewey
+| **[Article]** [Clustering](https://scikit-learn.org/stable/modules/clustering.html) by Scikit-Learn Team
+| **[Article]** [Practical Guide to Clustering Algorithms & Evaluation in R](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/clustering-algorithms-evaluation-r/tutorial/) by Hacker Earth Team
+| **[Article]** [Measures for Comparing Clustering Algorithms](https://www.datanovia.com/en/lessons/choosing-the-best-clustering-algorithms/#:~:text=Compare%20clustering%20algorithms%20in%20R%20We%E2%80%99ll%20use%20the,%22average%22%29%20obj%3A%20A%20numeric%20matrix%20or%20data%20frame.) by Datanovia Team
+| **[Article]** [DBSCAN Algorithm | How Does It Work?](https://www.mygreatlearning.com/blog/dbscan-algorithm/) by Pavan Kumar Raja
+| **[Article]** [DBSCAN Clustering in ML | Density Based Clustering](https://www.geeksforgeeks.org/dbscan-clustering-in-ml-density-based-clustering/) by Geeks For Geeks Team
+| **[Article]** [Density-Based Spatial Clustering of Applications with Noise (DBSCAN)](https://ml-explained.com/blog/dbscan-explained) by Machine Learning Explained Team
+| **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
+| **[Article]** [Density-Based Clustering - DBSCAN, OPTICS and DENCLUE](https://www.datamining365.com/2020/04/density-based-clustering-dbscan.html) by Data Mining 365 Team | **[Article]** [Demo of OPTICS Clustering Algorithm](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html) by Scikit-Learn Team
+| **[Article]** [ML | OPTICS Clustering Explanation](https://www.geeksforgeeks.org/ml-optics-clustering-explanation/) by Geeks For Geeks Team
+| **[Article]** [Comparing Different Clustering Algorithms on Toy Datasets](xxx) by Scikit-Learn Team
+| **[Article]** [How HDBSCAN Works](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) by HDBSCAN Team
+| **[Article]** [Understanding HDBSCAN and Density-Based Clustering](https://pberba.github.io/stats/2020/01/17/hdbscan/) by Pepe Berba
+| **[Article]** [SNN Clustering](http://mlwiki.org/index.php/SNN_Clustering) by Alexey Grigorev
+| **[Article]** [Basic Understanding of Jarvis-Patrick Clustering Algorithm](https://www.geeksforgeeks.org/basic-understanding-of-jarvis-patrick-clustering-algorithm/) by Geeks For Geeks Team
+| **[Article]** [Jarvis-Patrick Clustering](https://docs.chemaxon.com/display/docs/jarvis-patrick-clustering.md) by Chemaxon Team
+| **[Article]** [Which Are The Best Clustering Metrics? (Explained Simply)](https://stephenallwright.com/good-clustering-metrics/) by Stephen Allwright
+| **[Article]** [Elbow Method vs Silhouette Score – Which is Better?](https://vitalflux.com/elbow-method-silhouette-score-which-better/) by Ajitesh Kumar
+| **[Article]** [Assessment Metrics for Clustering Algorithms](https://opendatascience.com/assessment-metrics-clustering-algorithms/) by Spencer Norris
+| **[Article]** [Clustering Performance Evaluation in Scikit Learn](https://www.geeksforgeeks.org/clustering-performance-evaluation-in-scikit-learn/) by Geeks For Geeks Team
+| **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
+| **[Publication]** [A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise](https://dl.acm.org/doi/10.5555/3001460.3001507) by Martin Ester, Hans-Peter Kriegel, Joerg Sander and Xiaowei Xu (Proceedings of 2nd International Conference on Knowledge Discovery and Data Mining)
+| **[Publication]** [Density-Based Clustering Based on Hierarchical Density Estimates](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14) by Ricardo Campello, Davoud Moulavi and Joerg Sander (Proceedings of the 17th Pacific-Asia Conference on Knowledge Discovery in Databases)
+| **[Publication]** [OPTICS: Ordering Points To Identify the Clustering Structure](https://dl.acm.org/doi/10.1145/304181.304187) by Mihael Ankerst, Markus Breunig, Hans-Peter Kriegel and Joerg Sander (ACM SIGMOD International Conference on Management of Data)
+| **[Publication]** [Clustering Using a Similarity Measure Based on Shared Near Neighbors](https://ieeexplore.ieee.org/document/1672233) by Ray Jarvis and Edgar Patrick (IEEE Transactions on Computers)
+| **[Publication]** [Finding Clusters of Different Sizes, Shapes, and Densities in Noisy, High Dimensional Data](https://epubs.siam.org/doi/10.1137/1.9781611972733.5) by Levent Ertöz, Michael Steinbach, and Vipin Kumar (Proceedings of the 2003 SIAM International Conference on Data Mining)
+| **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
+|
+|
+|
+|
