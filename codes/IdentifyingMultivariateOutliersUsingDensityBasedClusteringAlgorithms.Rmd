@@ -1,6 +1,6 @@
 ---
 title: "Unsupervised Learning : Identifying Multivariate Outliers Using Density-Based Clustering Algorithms"
-author: "John Pauline Pineda"
+author: "<b><a href='https://github.com/JohnPaulinePineda'>John Pauline Pineda</a></b>"
 date: "February 7, 2023"
 output: 
   html_document:
@@ -58,7 +58,7 @@ library(pls)
 library(corrplot)
 library(tidyverse)
 library(lares)
-library(DMwR)
+library(DMwR2)
 library(gridExtra)
 library(rattle)
 library(RColorBrewer)
@@ -1338,7 +1338,7 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 |
 # **2. Summary** <a name="summary"></a>
 |
-| ![](D:/Github_Codes/ProjectPortfolio/Portfolio_Project_25/docs/Project25_Summary.png)
+| ![](D:/Github_Codes/ProjectPortfolio/Portfolio_Project_25/images/Project25_Summary.png)
 |
 # **3. References**
 |
@@ -1361,7 +1361,7 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[R Package]** [corrplot](https://cran.r-project.org/web/packages/corrplot/corrplot.pdf) by Taiyun Wei
 | **[R Package]** [tidyverse](https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf) by Hadley Wickham
 | **[R Package]** [lares](https://cran.rstudio.com/web/packages/lares/lares.pdf) by Bernardo Lares
-| **[R Package]** [DMwR](https://mran.microsoft.com/snapshot/2016-05-02/web/packages/DMwR/DMwR.pdf) by Luis Torgo
+| **[R Package]** [DMwR2](https://mran.microsoft.com/snapshot/2016-05-02/web/packages/DMwR/DMwR.pdf) by Luis Torgo
 | **[R Package]** [gridExtra](https://cran.r-project.org/web/packages/gridExtra/gridExtra.pdf) by Baptiste Auguie and Anton Antonov
 | **[R Package]** [rattle](https://cran.r-project.org/web/packages/rattle/rattle.pdf) by Graham Williams
 | **[R Package]** [RColorBrewer](https://cran.r-project.org/web//packages/RColorBrewer/RColorBrewer.pdf) by Erich Neuwirth
@@ -1383,7 +1383,8 @@ print(ClusteringPeformance_Summary, row.names=FALSE)
 | **[Article]** [DBSCAN Clustering in ML | Density Based Clustering](https://www.geeksforgeeks.org/dbscan-clustering-in-ml-density-based-clustering/) by Geeks For Geeks Team
 | **[Article]** [Density-Based Spatial Clustering of Applications with Noise (DBSCAN)](https://ml-explained.com/blog/dbscan-explained) by Machine Learning Explained Team
 | **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
-| **[Article]** [Density-Based Clustering - DBSCAN, OPTICS and DENCLUE](https://www.datamining365.com/2020/04/density-based-clustering-dbscan.html) by Data Mining 365 Team | **[Article]** [Demo of OPTICS Clustering Algorithm](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html) by Scikit-Learn Team
+| **[Article]** [Density-Based Clustering - DBSCAN, OPTICS and DENCLUE](https://www.datamining365.com/2020/04/density-based-clustering-dbscan.html) by Data Mining 365 Team 
+| **[Article]** [Demo of OPTICS Clustering Algorithm](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html) by Scikit-Learn Team
 | **[Article]** [ML | OPTICS Clustering Explanation](https://www.geeksforgeeks.org/ml-optics-clustering-explanation/) by Geeks For Geeks Team
 | **[Article]** [Comparing Different Clustering Algorithms on Toy Datasets](xxx) by Scikit-Learn Team
 | **[Article]** [How HDBSCAN Works](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) by HDBSCAN Team
